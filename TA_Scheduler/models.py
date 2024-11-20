@@ -6,12 +6,12 @@ class User(models.Model):
     fName = models.CharField(max_length=50)
     lName = models.CharField(max_length=50)
     MidInit = models.CharField(max_length=50)
+    email = models.CharField(max_length=50)
     password = models.CharField(max_length=50)
 
 class userPublicInfo(models.Model):
     userID = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     workPhone = models.IntegerField
-    email = models.CharField(max_length=50)
     officeHours = models.DateField
 
 class userPrivateInfo(models.Model):
