@@ -26,3 +26,23 @@ class LoginTest(TestCase):
         resp = self.client.post("/",{"email": "","password": ""},follow=True)
         self.assertEqual(resp.context["message"],"Email and/or Password cannot be blank")
         self.assertEqual(resp.status_code,200)
+
+class HomeTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        testUser = User(id=1, userType=2, email="testUser@uwm.edu", password="1234")
+        testAdminUser = User(id=2, userType=1, email="testAdminUser@uwm.edu", password="2222")
+        testUser.save()
+        testAdminUser.save()
+
+    def test_AdminLogin(self):
+        resp = self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        self.assertRedirects(resp, "/home/")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["userType"], 1)
+
+    def test_UserLogin(self):
+        resp = self.client.post("/", {"email": "testUser@uwm.edu", "password": "1234"}, follow=True)
+        self.assertRedirects(resp, "/home/")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["userType"], 2)
