@@ -9,14 +9,14 @@ class User(models.Model):
     password = models.CharField(max_length=50)
 
 class userPublicInfo(models.Model):
-    id = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    workPhone = models.IntegerField(max_length=11)
+    userID = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    workPhone = models.IntegerField
     email = models.CharField(max_length=50)
     officeHours = models.DateField
 
-class privateContactInfo(models.Model):
-    id = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    cellPhone = models.IntegerField(max_length=11)
+class userPrivateInfo(models.Model):
+    userID = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    cellPhone = models.IntegerField
     address = models.CharField(max_length=50)
 
 class Class(models.Model):
