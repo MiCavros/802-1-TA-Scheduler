@@ -2,7 +2,7 @@ from django.db import models
 
 class User(models.Model):
     id = models.IntegerField(primary_key=True)
-    userType = models.IntegerField
+    userType = models.CharField(max_length=10)
     fName = models.CharField(max_length=50)
     lName = models.CharField(max_length=50)
     MidInit = models.CharField(max_length=50)

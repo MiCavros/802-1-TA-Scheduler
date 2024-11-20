@@ -28,6 +28,6 @@ class Login(View):
 
 class Home(View):
     def get(self, request):
-        return render(request, 'home.html')
-    def post(self, request):
-        return render(request, 'home.html')
+        userID = request.session["id"]
+        m = User.objects.get(id=userID)
+        return render(request, 'home.html', {"userType": m.userType, "name":  m.fName})

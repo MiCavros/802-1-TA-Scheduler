@@ -30,8 +30,8 @@ class LoginTest(TestCase):
 class HomeTest(TestCase):
     def setUp(self):
         self.client = Client()
-        testUser = User(id=1, userType=2, email="testUser@uwm.edu", password="1234")
-        testAdminUser = User(id=2, userType=1, email="testAdminUser@uwm.edu", password="2222")
+        testUser = User(id=1, userType="TA", email="testUser@uwm.edu", password="1234")
+        testAdminUser = User(id=2, userType="Admin", email="testAdminUser@uwm.edu", password="2222")
         testUser.save()
         testAdminUser.save()
 
@@ -39,10 +39,10 @@ class HomeTest(TestCase):
         resp = self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
         self.assertRedirects(resp, "/home/")
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.context["userType"], 1)
+        self.assertEqual(resp.context["userType"], "Admin")
 
     def test_UserLogin(self):
         resp = self.client.post("/", {"email": "testUser@uwm.edu", "password": "1234"}, follow=True)
         self.assertRedirects(resp, "/home/")
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.context["userType"], 2)
+        self.assertEqual(resp.context["userType"], "TA")
