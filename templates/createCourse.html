@@ -3,8 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <title>Create Course</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+        header {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        main {
+            margin: 20px auto;
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        section {
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
-
+    <header>
+        <h2>TA Scheduler - Create Course</h2>
+    </header>
+    <main>
+        <h1>Create a New Course</h1>
+        <section>
+            <label for="title">Course Title</label>
+            <input type="text" id="title" placeholder="Enter course title" disabled>
+        </section>
+        <section>
+            <label for="description">Course Description</label>
+            <textarea id="description" rows="4" placeholder="Enter course description" disabled></textarea>
+        </section>
+        <section>
+            <label for="schedule">Course Schedule</label>
+            <input type="text" id="schedule" placeholder="e.g., Monday, 9:00 AM - 11:00 AM" disabled>
+        </section>
+        <section>
+            <label for="instructor">Assign Instructor</label>
+            <select id="instructor" disabled>
+                <option value="" disabled selected>Select an instructor</option>
+                <option value="1">Instructor 1</option>
+                <option value="2">Instructor 2</option>
+            </select>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 TA Scheduler</p>
+    </footer>
 </body>
 </html>
