@@ -6,5 +6,57 @@
 </head>
 <body>
 
+    <h1>Create User</h1>
+    <form action="/createUser/" method="post">
+        {% csrf_token %}
+        <table>
+
+            <tr>
+                <td>username (required):</td>
+                <td> <input type="text" name="username" required> </td>
+            </tr>
+            <tr>
+                <td>Password (required):</td>
+                <td>
+                    <input type="password" name="password" required>
+                </td>
+            </tr>
+            <tr>
+
+                <td>Role (required): </td>
+                <td>
+                    <select name="role" required>
+                        <option value="">-- Select Role --</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Instructor">Instructor</option>
+                        <option value="TA">TA</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>name (optional):</td>
+                <td><input type="text" name="name"></td>
+            </tr>
+            <tr>
+                <td>email (optional):</td>
+                <td><input type="email" name="email"></td>
+
+            </tr>
+            <tr>
+                <td>
+                    phone number (optional):
+                </td>
+                <td><input type="tel" name="phone" ></td>
+            </tr>
+        </table>
+        <br>
+        <input type="submit" value="create user" style="margin-left: 15px;">
+    </form>
+    <br>
+    {% if message %}
+        <div style="color:red; font-size: 1.1em;">
+            {{ message }}
+        </div>
+    {% endif %}
 </body>
 </html>

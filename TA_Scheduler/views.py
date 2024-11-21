@@ -31,3 +31,6 @@ class Home(View):
         userID = request.session["id"]
         m = User.objects.get(id=userID)
         return render(request, 'home.html', {"userType": m.userType, "name":  m.fName})
+    
+class CreateUser(View):
+    pass
