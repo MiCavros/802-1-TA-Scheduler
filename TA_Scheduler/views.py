@@ -34,3 +34,24 @@ class Home(View):
     
 class CreateUser(View):
     pass
+
+class CreateCourse(View):
+    def get(self, request):
+        return render(request, 'createCourse.html')
+    def post(self, request):
+        if request.POST['title'] == "":
+            return render(request, "createCourse.html", {"message": "Course title cannot be blank."})
+
+        if request.POST['description'] == "":
+            return render(request, "createCourse.html", {"message": "Course description cannot be blank."})
+        
+        if request.POST['schedule'] == "":
+            return render(request, "createCourse.html", {"message": "Course schedule cannot be blank."})
+
+        userType = User.objects.get(userType=request.POST['userType'])
+        invalidUserType = (userType != "Instructor" or userType != "Admin")
+
+        if invalidUserType:
+            return render(request, "createCourse.html", {"message": "You are not able to access this page."})
+
+        return render(request, 'createCourse.html', {"title": request.POST['title'], "description":  request.POST['description'], "schedule": request.POST['schedule']})
