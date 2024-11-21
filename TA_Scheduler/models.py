@@ -20,6 +20,8 @@ class userPrivateInfo(models.Model):
     address = models.CharField(max_length=50)
 
 class Class(models.Model):
+    title = models.CharField(max_length=50)
+    description = models.CharField(max_length=1000)
     id = models.IntegerField(primary_key=True)
     location = models.CharField(max_length=50)
     time = models.DateTimeField
