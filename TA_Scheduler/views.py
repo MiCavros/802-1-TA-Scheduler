@@ -24,6 +24,7 @@ class Login(View):
             return render(request,"login.html",{"message":"Incorrect Password"})
         else:
             request.session["id"] = user.id
+            print(user.userType, user.id)
             return redirect("/home/")
 
 class Home(View):
@@ -33,4 +34,12 @@ class Home(View):
         return render(request, 'home.html', {"userType": m.userType, "name":  m.fName})
     
 class CreateUser(View):
-    pass
+    def get(self, request):
+        userID = request.session["id"]
+        m = User.objects.get(id=userID)
+        return render(request, 'createUser.html', {"message": "", "userType": m.userType})
+    def post(self, request):
+        #Code the post please
+        userID = request.session["id"]
+        m = User.objects.get(id=userID)
+        return render(request, 'createUser.html', {"message" : "", "userType": m.userType})

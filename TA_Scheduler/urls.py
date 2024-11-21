@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from TA_Scheduler.views import Login, Home
+from TA_Scheduler.views import Login, Home, CreateUser
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,4 +25,6 @@ urlpatterns = [
     path('', Login.as_view(), name='Login'),
 
     path('home/', Home.as_view(), name='Home'),
+
+    path('createuser/', CreateUser.as_view(), name='Create User'),
 ]
