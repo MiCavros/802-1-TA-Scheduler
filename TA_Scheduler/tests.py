@@ -47,6 +47,9 @@ class HomeTest(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["userType"], "TA")
 
+class CreateUser(TestCase):
+    pass
+
 class CreateCouse(TestCase):
     def setUp(self):
         self.client = Client()
@@ -58,18 +61,15 @@ class CreateCouse(TestCase):
         testAdminUser.save()
 
     def test_CourseCreateWithoutAssignments(self):
-        resp = self.client.post("/create-course/", {
+        resp = self.client.post("/create-course/", { 
             "title": "testtitle", 
             "description": "testdescription", 
             "schedule": "testschedule"
         }, follow=True)
-        # self.assertEqual(resp.status_code, 200)
-        # self.assertEqual(resp.context['assignments'], "")  
-        # Check that the course details are correctly passed
-        self.assertEqual(resp.context['title'], "testtitle")
-        self.assertEqual(resp.context['description'], "testdescription")
-        self.assertEqual(resp.context['schedule'], "testschedule")
-        # Check that the course is actually saved in the database
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context['assignments'], "")  
+
         course = Class.objects.get(title="testtitle")
         self.assertIsNotNone(course)
         self.assertEqual(course.title, "testtitle")
@@ -77,31 +77,98 @@ class CreateCouse(TestCase):
         self.assertEqual(course.schedule, "testschedule")
 
     def test_CourseCreateWithAssignments(self):
-        pass
+        resp = self.client.post("/create-course/", { 
+            "title": "testtitle",
+            "description": "testdescription", 
+            "schedule": "testschedule", 
+            "assignments": "testassignments"
+        }, follow=True)
+        
+        self.assertEqual(resp.status_code, 200)
+
+        course = Class.objects.get(title="testtitle")
+        self.assertIsNotNone(course)
+        self.assertEqual(course.title, "testtitle")
+        self.assertEqual(course.description, "testdescription")
+        self.assertEqual(course.schedule, "testschedule")
+        self.assertEqual(course.assignments, "testassignments")
 
     def test_EmptyTitle(self):
-        pass
+        resp = self.client.post("/create-course/", {
+            "title": "",
+            "description": "testdescription",
+            "schedule": "testschedule"
+        }, follow=True)  
+        
+        self.assertEqual(resp.status_code, 400) 
+        self.assertIn("Title cannot be empty", resp.context['errors'])
 
     def test_InvalidTitle(self):
-        pass
+        resp = self.client.post("/create-course/", {
+            "title": "t" * 51,
+            "description": "testdescription", 
+            "schedule": "testschedule"
+        }, follow=True)
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Title exceeds maximum length", resp.context['errors'])
 
     def test_EmptyDescription(self):
-        pass
+        resp = self.client.post("/create-course/", { 
+            "title": "testtitle",
+            "description": "", 
+            "schedule": "testschedule", 
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 400) 
+        self.assertIn("Description cannot be empty", resp.context['errors'])
 
     def test_InvalidDescription(self):
-        pass
+        resp = self.client.post("/create-course/", {
+            "title": "testtitle", 
+            "description": "d" * 1001,
+            "schedule": "testschedule"
+        }, follow=True)
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Description exceeds maximum length", resp.context['errors'])
 
-    def test_EmptySchedule(self):
-        pass
+    def test_EmptySchedule(self):    
+        resp = self.client.post("/create-course/", {
+            "title": "testtitle",
+            "description": "testdescription",
+            "schedule": "",
+            }, follow=True)
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Schedule cannot be empty", resp.context['errors'])
 
-    def test_ValidScheduleStartEndDates(self):
-        pass
+    def test_InvalidScheduleStartEndDates(self):
+        resp = self.client.post("/create-course/", { 
+            "title": "testtitle",
+            "description": "", 
+            "schedule": "Start Date: 012/01/2024, End Date: 11/20/2024", 
+        }, follow=True)
 
-    def test_ValidSchduleStartDate(self):
-        pass
+        self.assertEqual(resp.status_code, 400) 
+        self.assertIn("Class cannot start after its end date.", resp.context['errors'])
+
+    def test_InvalidSchduleStartDate(self):
+        resp = self.client.post("/create-course/", { 
+            "title": "testtitle",
+            "description": "", 
+            "schedule": "Start Date: 01/01/2024, End Date: 01/01/2025", 
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 400) 
+        self.assertIn("Class cannot start in the past.", resp.context['errors'])
 
     def test_DuplicateCourse(self):
-        pass
+        resp = self.client.post("/create-course/", {
+            "title": "testtitle", 
+            "description": "testdescription", 
+            "schedule": "testschedule"
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Course already exists", resp.context['errors'])
 
 class createUserTest(TestCase):
     def setUp(self):
@@ -171,6 +238,5 @@ class createUserTest(TestCase):
         resp = self.client.post("/createuser/", {"email": "testUser@uwm.edu", "password": "4321", "role": ""}, follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["message"], "There is already a user with that email")
-
 
 
