@@ -33,6 +33,15 @@ class Home(View):
         return render(request, 'home.html', {"userType": m.userType, "name":  m.fName})
     
 class CreateUser(View):
+    def get(self, request):
+        userID = request.session["id"]
+        m = User.objects.get(id=userID)
+        return render(request, 'createUser.html', {"message": "", "userType": m.userType})
+    def post(self, request):
+        #Code the post please
+        userID = request.session["id"]
+        m = User.objects.get(id=userID)
+        return render(request, 'createUser.html', {"message" : "", "userType": m.userType})
     pass
 
 class CreateCourse(View):
@@ -42,11 +51,11 @@ class CreateCourse(View):
         # if request.POST['title'] == "":
         #     return render(request, "createCourse.html", {"message": "Course title cannot be blank."})
 
-        # if request.POST['description'] == "":
-        #     return render(request, "createCourse.html", {"message": "Course description cannot be blank."})
-        
-        # if request.POST['schedule'] == "":
-        #     return render(request, "createCourse.html", {"message": "Course schedule cannot be blank."})
+        if request.POST['description'] == "":
+            return render(request, "createCourse.html", {"message": "Course description cannot be blank."})
+
+        if request.POST['schedule'] == "":
+            return render(request, "createCourse.html", {"message": "Course schedule cannot be blank."})
 
         # userID = request.session["id"]
         # m = User.objects.get(id=userID)
