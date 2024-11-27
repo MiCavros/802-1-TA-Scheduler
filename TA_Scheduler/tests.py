@@ -47,10 +47,8 @@ class HomeTest(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["userType"], "TA")
 
-class CreateUser(TestCase):
-    pass
 
-class CreateCouse(TestCase):
+class CreateCourse(TestCase):
     def setUp(self):
         self.client = Client()
         testTAUser = User(id=1, userType="TA", email="testTA@uwm.edu", password="1234")

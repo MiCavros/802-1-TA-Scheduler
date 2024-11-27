@@ -8,6 +8,8 @@ class User(models.Model):
     MidInit = models.CharField(max_length=50)
     email = models.CharField(max_length=50)
     password = models.CharField(max_length=50)
+testAdmin = User(fName = "Test", lName = "Admin", id = 1, userType = "Admin", email = "testadmin@uwm.edu", password = "1234" )
+
 
 class userPublicInfo(models.Model):
     userID = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
@@ -33,3 +35,5 @@ class Section(models.Model):
     sectionId = models.IntegerField(primary_key=True)
     classId = models.ForeignKey(Class, on_delete=models.CASCADE, null=True)
     TA = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+
