@@ -6,8 +6,10 @@
 </head>
 <body>
 <h1>Home</h1>
-
-<p>Welcome {{name}}</p>
+<form action="/home/" method="post">
+    {% csrf_token %}
+    <p>Welcome {{name}}</p>
+</form>
 
 </body>
 </html>
