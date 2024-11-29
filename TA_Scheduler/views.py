@@ -65,3 +65,32 @@ class CreateCourse(View):
         #     return render(request, "createCourse.html", {"message": "You are not able to access this page."})
 
         return render(request, 'createCourse.html', {"title": request.POST['title'], "description":  request.POST['description'], "schedule": request.POST['schedule']})
+class CreateSection(View):
+    def get(self, request):
+        return render(request, 'createSection.html')
+    def post(self, request):
+        return render(request, "createSection.html")
+
+class AssignSection(View):
+    def get(self, request):
+        return render(request, 'assignSections.html')
+    def post(self, request):
+        return render(request, "assignSections.html")
+
+class editContactInfo(View):
+    def get(self, request):
+        return render(request, 'editContactInfo.html')
+    def post(self, request):
+        return render(request, 'editContactInfo.html')
+
+class editUser(View):
+    def get(self, request):
+        return render(request, 'editUser.html')
+    def post(self, request):
+        return render(request, 'editUser.html')
+
+class manageUser(View):
+    def get(self, request):
+        return render(request, 'manageUsers.html')
+    def post(self, request):
+        return render(request, 'manageUsers.html')
