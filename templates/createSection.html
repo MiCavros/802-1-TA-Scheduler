@@ -2,9 +2,116 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Create Section </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+        header {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        main {
+            margin: 20px auto;
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        section {
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            color: #666;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
-<body>
-
+<body>  
+    <header>
+        <h2>TA Scheduler - Create Section</h2>
+    </header> 
+    <main>
+        <h1>   Create a New Section   </h1>
+        {% if error_message %}
+        <p class="error-message">{{ error_message }}</p>
+        {% endif %}
+        <form action="/createsection/"  method="post">
+            {% csrf_token %}
+             <section>
+                <label for="course">Select Course</label>
+                <select id="course" name="course_id" required>
+                    <option value= "" disabled selected> Select a course</option>
+                    {% for course in courses %}
+                        <option value="{{ course.id }}">{{ course.title }}</option>
+                    {% endfor %}
+                </select>
+            </section>
+            <section>
+                <label for="section_name"> Section Name</label>
+                <input type="text" id="section_name" name=" section_name " placeholder="enter sectionn name" required>
+            </section>
+            <section>     
+                <label for="schedule">Section Schedule</label>
+                <input type="text" id="schedule" name="schedule" placeholder="e.g., Tuesday, 2:00 PM - 4:00 PM" required>
+            </section>
+            <section>
+                <label for="instructor">Assign Instructor</label>
+                <select id="instructor" name="instructor_id" required>
+                    <option value="" disabled selected>Select an INstructor</option>
+                    {% for instructor in instructors %}
+                        <option value="{{ instructor.id }}">{{ instructor.name }}</option>
+                    {% endfor %}
+                </select> 
+            </section>
+            <section>
+                <label for="max_capacity">Max Capacity</label>
+                <input type="number" id="max_capacity" name="max_capacity" placeholder="enter maximum number of students" required>
+            </section>
+            <button type="submit ">Create Section</button>
+        </form>
+    </main>
+    <footer>
+        <p>&copy; 2024 TA Scheduler</p>
+    </footer>
 </body>
 </html>
