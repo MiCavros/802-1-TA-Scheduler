@@ -200,18 +200,19 @@ class createUserTest(TestCase):
 
     def test_createUserSuccessfully(self):
         self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.post("/createuser/", {"role": "TA", "email": "newTestUser@uwm.edu", "password": "4444"}, follow=True)
+        resp = self.client.post("/createuser/", {"role": "TA", "email": "newTestUser@uwm.edu", "password": "4444",  "fName" : "Test", "midI" : "T", "lName" : "User"}, follow=True)
         self.assertEqual(resp.status_code, 200)
-        newUser = User.objects.get(email="newTestUser@uwm.edu")
-        self.assertEqual(newUser.role, "TA")
+        self.assertEqual(resp.context["message"], "User Created Successfully")
+        newUser = User.objects.get(email="newtestuser@uwm.edu")
+        self.assertEqual(newUser.userType, "TA")
         self.assertEqual(newUser.password, "4444")
-        self.assertEqual(resp.context["message"], "User created successfully")
+
 
     def test_invalidEmail(self):
         self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
         resp = self.client.post("/createuser/", {"role": "TA", "email": "newTestUser", "password": "4444"}, follow=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.context["message"], "Invalid Email")
+        self.assertEqual(resp.context["message"], "Must use valid UWM.edu email")
 
     def test_NoEmail(self):
         self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
@@ -233,7 +234,7 @@ class createUserTest(TestCase):
 
     def test_sameEmail(self):
         self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.post("/createuser/", {"email": "testUser@uwm.edu", "password": "4321", "role": ""}, follow=True)
+        resp = self.client.post("/createuser/", {"email": "testUser@uwm.edu", "password": "4321", "role": "TA"}, follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["message"], "There is already a user with that email")
 
