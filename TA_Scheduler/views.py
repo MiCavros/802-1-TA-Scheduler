@@ -30,7 +30,10 @@ class Home(View):
     def get(self, request):
         userID = request.session["id"]
         m = User.objects.get(id=userID)
-        return render(request, 'home.html', {"userType": m.userType, "name":  m.fName})
+        if m.userType == "Admin":
+            return render(request, 'adminHome.html', {"userType": m.userType, "name":  m.fName})
+        else:
+            return render(request, 'home.html', {"userType": m.userType, "name":  m.fName})
     
 class CreateUser(View):
     def get(self, request):

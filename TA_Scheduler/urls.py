@@ -33,4 +33,5 @@ urlpatterns = [
     path('edituser/', editUser.as_view(), name='Edit User'),
     path('manageuser/', manageUser.as_view(), name='Mangage Users'),
     path('createsection/', CreateSection.as_view(), name='Create Section'),
+
 ]
