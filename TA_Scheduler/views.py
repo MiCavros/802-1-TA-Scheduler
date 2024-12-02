@@ -2,6 +2,8 @@ import random
 from operator import truediv
 
 from django.db.models.fields import return_None
+from django.db.utils import IntegrityError
+from datetime import datetime
 from django.shortcuts import render, redirect
 from django.views import View
 from .models import User, userPublicInfo, userPrivateInfo, Class, Section
@@ -37,7 +39,7 @@ class Home(View):
             return render(request, 'adminHome.html', {"userType": m.userType, "name":  m.fName})
         else:
             return render(request, 'home.html', {"userType": m.userType, "name":  m.fName})
-    
+
 class CreateUser(View):
     def get(self, request):
         userID = request.session["id"]
@@ -87,24 +89,78 @@ class CreateUser(View):
 class CreateCourse(View):
     def get(self, request):
         return render(request, 'createCourse.html')
+
     def post(self, request):
-        # if request.POST['title'] == "":
-        #     return render(request, "createCourse.html", {"message": "Course title cannot be blank."})
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        schedule = request.POST.get('schedule', '').strip()
+        assignments = request.POST.get('assignments', '').strip()
 
-        if request.POST['description'] == "":
-            return render(request, "createCourse.html", {"message": "Course description cannot be blank."})
+        errors = []
 
-        if request.POST['schedule'] == "":
-            return render(request, "createCourse.html", {"message": "Course schedule cannot be blank."})
+        # Validation for title
+        if not title:
+            errors.append("Title cannot be empty")
+        elif len(title) > 50:
+            errors.append("Title exceeds maximum length")
 
-        # userID = request.session["id"]
-        # m = User.objects.get(id=userID)
-        # invalidUserType = (userType != "Instructor" or userType != "Admin")
+        # Validation for description
+        if not description:
+            errors.append("Description cannot be empty")
+        elif len(description) > 1000:
+            errors.append("Description exceeds maximum length")
 
-        # if invalidUserType:
-        #     return render(request, "createCourse.html", {"message": "You are not able to access this page."})
+        # Validation for schedule
+        if not schedule:
+            errors.append("Schedule cannot be empty")
+        else:
+            # Validate schedule format
+            try:
+                start_date_str = schedule.split("Start Date: ")[1].split(",")[0].strip()
+                end_date_str = schedule.split("End Date: ")[1].strip()
 
-        return render(request, 'createCourse.html', {"title": request.POST['title'], "description":  request.POST['description'], "schedule": request.POST['schedule']})
+                start_date = datetime.strptime(start_date_str, "%m/%d/%Y")
+                end_date = datetime.strptime(end_date_str, "%m/%d/%Y")
+
+                # Check if start date is after end date
+                if start_date > end_date:
+                    errors.append("Class cannot start after its end date.")
+                # Check if start date is in the past
+                if start_date < datetime.now():
+                    errors.append("Class cannot start in the past.")
+            except (IndexError, ValueError):
+                errors.append("Schedule format is incorrect. Use 'Start Date: MM/DD/YYYY, End Date: MM/DD/YYYY'.")
+
+        # Check for duplicate course
+        if Class.objects.filter(title=title).exists():
+            errors.append("Course already exists")
+
+        # If there are errors, return to the same page with errors
+        if errors:
+            return render(request, 'createCourse.html', {
+                'errors': errors,
+                'title': title,
+                'description': description,
+                'schedule': schedule,
+                'assignments': assignments
+            })
+
+        # If no errors, create the course
+        new_course = Class.objects.create(
+            title=title,
+            description=description,
+            schedule=schedule,
+            assignments=assignments
+        )
+
+        return render(request, 'createCourse.html', {
+            'message': "Course created successfully!",
+            'title': new_course.title,
+            'description': new_course.description,
+            'schedule': new_course.schedule,
+            'assignments': new_course.assignments
+        })
+
 class CreateSection(View):
     def get(self, request):
         return render(request, 'createSection.html')

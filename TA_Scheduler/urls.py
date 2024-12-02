@@ -28,10 +28,10 @@ urlpatterns = [
     path('home/', Home.as_view(), name='Home'),
 
     path('createuser/', CreateUser.as_view(), name='Create User'),
-    path('createcourse/', CreateCourse.as_view(), name='Create Course'),
+    path('create-course/', CreateCourse.as_view(), name='Create Course'),
     path('editcontactinfo/', editContactInfo.as_view(), name='Edit Contact Info'),
     path('edituser/', editUser.as_view(), name='Edit User'),
-    path('manageuser/', manageUser.as_view(), name='Mangage Users'),
+    path('manageuser/', manageUser.as_view(), name='Manage Users'),
     path('createsection/', CreateSection.as_view(), name='Create Section'),
 
 ]

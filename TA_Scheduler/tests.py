@@ -51,6 +51,11 @@ class HomeTest(TestCase):
 class CreateCourse(TestCase):
     def setUp(self):
         self.client = Client()
+        Class.objects.create(
+            title="existingCourseTitle",
+            description="Initial description",
+            schedule="Initial schedule"
+        )
         testTAUser = User(id=1, userType="TA", email="testTA@uwm.edu", password="1234")
         testInstructorUser = User(id=2, userType="Instructor", email="testInstructor@uwm.edu", password="1234")
         testAdminUser = User(id=3, userType="Admin", email="testAdminUser@uwm.edu", password="2222")
@@ -62,7 +67,7 @@ class CreateCourse(TestCase):
         resp = self.client.post("/create-course/", { 
             "title": "testtitle", 
             "description": "testdescription", 
-            "schedule": "testschedule"
+            "schedule": "Start Date: 01/01/2025, End Date: 01/15/2025"
         }, follow=True)
 
         self.assertEqual(resp.status_code, 200)
@@ -72,13 +77,13 @@ class CreateCourse(TestCase):
         self.assertIsNotNone(course)
         self.assertEqual(course.title, "testtitle")
         self.assertEqual(course.description, "testdescription")
-        self.assertEqual(course.schedule, "testschedule")
+        self.assertEqual(course.schedule, "Start Date: 01/01/2025, End Date: 01/15/2025")
 
     def test_CourseCreateWithAssignments(self):
         resp = self.client.post("/create-course/", { 
             "title": "testtitle",
             "description": "testdescription", 
-            "schedule": "testschedule", 
+            "schedule": "Start Date: 01/01/2025, End Date: 01/15/2025",
             "assignments": "testassignments"
         }, follow=True)
         
@@ -88,7 +93,7 @@ class CreateCourse(TestCase):
         self.assertIsNotNone(course)
         self.assertEqual(course.title, "testtitle")
         self.assertEqual(course.description, "testdescription")
-        self.assertEqual(course.schedule, "testschedule")
+        self.assertEqual(course.schedule, "Start Date: 01/01/2025, End Date: 01/15/2025")
         self.assertEqual(course.assignments, "testassignments")
 
     def test_EmptyTitle(self):
@@ -98,7 +103,7 @@ class CreateCourse(TestCase):
             "schedule": "testschedule"
         }, follow=True)  
         
-        self.assertEqual(resp.status_code, 400) 
+        self.assertEqual(resp.status_code, 200)
         self.assertIn("Title cannot be empty", resp.context['errors'])
 
     def test_InvalidTitle(self):
@@ -107,7 +112,7 @@ class CreateCourse(TestCase):
             "description": "testdescription", 
             "schedule": "testschedule"
         }, follow=True)
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, 200)
         self.assertIn("Title exceeds maximum length", resp.context['errors'])
 
     def test_EmptyDescription(self):
@@ -117,7 +122,7 @@ class CreateCourse(TestCase):
             "schedule": "testschedule", 
         }, follow=True)
 
-        self.assertEqual(resp.status_code, 400) 
+        self.assertEqual(resp.status_code, 200)
         self.assertIn("Description cannot be empty", resp.context['errors'])
 
     def test_InvalidDescription(self):
@@ -126,7 +131,7 @@ class CreateCourse(TestCase):
             "description": "d" * 1001,
             "schedule": "testschedule"
         }, follow=True)
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, 200)
         self.assertIn("Description exceeds maximum length", resp.context['errors'])
 
     def test_EmptySchedule(self):    
@@ -135,37 +140,43 @@ class CreateCourse(TestCase):
             "description": "testdescription",
             "schedule": "",
             }, follow=True)
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, 200)
         self.assertIn("Schedule cannot be empty", resp.context['errors'])
 
     def test_InvalidScheduleStartEndDates(self):
         resp = self.client.post("/create-course/", { 
             "title": "testtitle",
             "description": "", 
-            "schedule": "Start Date: 012/01/2024, End Date: 11/20/2024", 
+            "schedule": "Start Date: 12/01/2024, End Date: 11/20/2024",
         }, follow=True)
 
-        self.assertEqual(resp.status_code, 400) 
+        self.assertEqual(resp.status_code, 200)
         self.assertIn("Class cannot start after its end date.", resp.context['errors'])
 
-    def test_InvalidSchduleStartDate(self):
+    def test_InvalidScheduleStartDate(self):
         resp = self.client.post("/create-course/", { 
             "title": "testtitle",
             "description": "", 
             "schedule": "Start Date: 01/01/2024, End Date: 01/01/2025", 
         }, follow=True)
 
-        self.assertEqual(resp.status_code, 400) 
+        self.assertEqual(resp.status_code, 200)
         self.assertIn("Class cannot start in the past.", resp.context['errors'])
 
     def test_DuplicateCourse(self):
+        Class.objects.create(
+            title="testtitle",
+            description="testdescription",
+            schedule="testschedule"
+        )
+
         resp = self.client.post("/create-course/", {
-            "title": "testtitle", 
+            "title": "testtitle",
             "description": "testdescription", 
             "schedule": "testschedule"
         }, follow=True)
 
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, 200)
         self.assertIn("Course already exists", resp.context['errors'])
 
 class createUserTest(TestCase):

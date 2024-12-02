@@ -27,8 +27,8 @@ class Class(models.Model):
     id = models.IntegerField(primary_key=True)
     location = models.CharField(max_length=50)
     time = models.DateTimeField
-    ##labList =
-    ##TAList =
+    schedule = models.TextField(null=True, blank=True)
+    assignments = models.TextField(null=True, blank=True) #optional assignments
     instructor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
 class Section(models.Model):
