@@ -250,3 +250,92 @@ class createUserTest(TestCase):
         self.assertEqual(resp.context["message"], "There is already a user with that email")
 
 
+class EditContactInfoTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create(
+            id=1, userType="TA", email="testUser@uwm.edu", password="1234"
+        )
+        self.public_info = userPublicInfo.objects.create(
+            user=self.user, email="testUser@uwm.edu", phone="1234567890"
+        )
+
+    # Positive Test: Edit contact info with valid data
+    def test_editContactInfoSuccess(self):
+        resp = self.client.post("/edit-contact-info/", {
+            "email": "newEmail@uwm.edu",
+            "phone": "9876543210",
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "Contact information updated successfully")
+
+        updated_info = userPublicInfo.objects.get(user=self.user)
+        self.assertEqual(updated_info.email, "newEmail@uwm.edu")
+        self.assertEqual(updated_info.phone, "9876543210")
+
+    # Negative Test: Empty email field
+    def test_emptyEmail(self):
+        resp = self.client.post("/edit-contact-info/", {
+            "email": "",
+            "phone": "9876543210",
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Email cannot be empty", resp.context['errors'])
+
+    # Negative Test: Empty phone field
+    def test_emptyPhone(self):
+        resp = self.client.post("/edit-contact-info/", {
+            "email": "testUser@uwm.edu",
+            "phone": "",
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Phone number cannot be empty", resp.context['errors'])
+
+    # Negative Test: Phone number less than 10 digits
+    def test_invalidPhoneLength(self):
+        resp = self.client.post("/edit-contact-info/", {
+            "email": "testUser@uwm.edu",
+            "phone": "12345",
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Phone number must be at least 10 digits", resp.context['errors'])
+
+    # Negative Test: Invalid email domain
+    def test_invalidEmail(self):
+        resp = self.client.post("/edit-contact-info/", {
+            "email": "invalidEmail@gmail.com",
+            "phone": "9876543210",
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Email must be a valid @uwm.edu address", resp.context['errors'])
+
+    # Negative Test: Unauthenticated access
+    def test_unauthenticatedAccess(self):
+        self.client.logout()
+        resp = self.client.post("/edit-contact-info/", {
+            "email": "newEmail@uwm.edu",
+            "phone": "9876543210",
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 403)  # Forbidden
+        self.assertIn("Authentication required", resp.context['errors'])
+
+    # Negative Test: Unauthorized user trying to edit another user's contact info
+    def test_unauthorizedAccess(self):
+        other_user = User.objects.create(
+            id=2, userType="Instructor", email="otherUser@uwm.edu", password="4321"
+        )
+        self.client.force_login(other_user)
+
+        resp = self.client.post("/edit-contact-info/", {
+            "email": "newEmail@uwm.edu",
+            "phone": "9876543210",
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 403)  # Forbidden
+        self.assertIn("Permission denied", resp.context['errors'])
