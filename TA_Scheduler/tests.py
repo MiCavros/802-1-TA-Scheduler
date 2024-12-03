@@ -339,3 +339,47 @@ class EditContactInfoTest(TestCase):
 
         self.assertEqual(resp.status_code, 403)  # Forbidden
         self.assertIn("Permission denied", resp.context['errors'])
+
+class createSectionTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        testAdminUser = User(id=2, userType="ADMIN", email="testAdminUser@uwm.edu", password="2222")
+        testAdminUser.save()
+        testInstructor = User(id=3, userType="INSTRUCTOR", email="testInstructor@uwm.edu", password = "4444")
+        testInstructor.save()
+
+        testCourse = Class(id=2, title="testCourse", instructor=testInstructor, schedule="Start Date: 01/01/2025, End Date: 01/15/2025")
+        testCourse.save()
+
+    def test_successfulSectionCreation(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.post("/createsection/",{"section_name": "testSection", "instructor_id" : 3, "schedule": "Tuesday, 2:00 PM - 4:00 PM", "course_id": 2, "max_capacity" : 10}, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "Section Created Successfully")
+        newSection = Section.objects.get(classId=2)
+
+    def test_noInstructor(self ):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.post("/createsection/", {"section_name": "testSection", "schedule": "Tuesday, 2:00 PM - 4:00 PM", "course_id" : 2, "max_capacity" : 10},follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "Instructor Field is Required")
+    def test_noName(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.post("/createsection/",{"instructor_id": 3, "schedule": "Tuesday, 2:00 PM - 4:00 PM", "course_id": 2, "max_capacity" : 10}, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "Name Field is Required")
+    def test_invalidName(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.post("/createsection/",{"section_name": "##$$*)(*", "instructor_id" : 3, "schedule": "Tuesday, 2:00 PM - 4:00 PM", "course_id": 2, "max_capacity" : 10}, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "Section Name is Invalid")
+    def test_noCourse(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.post("/createsection/", {"section_name": "testSection", "instructor_id" : 3, "schedule": "Tuesday, 2:00 PM - 4:00 PM", "max_capacity" : 10},follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "Course Field is Required")
+    def test_noCapacity(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.post("/createsection/",{"section_name": "testSection", "instructor_id" : 3, "schedule": "Tuesday, 2:00 PM - 4:00 PM","course_id": "2", "max_capacity" : 10}, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "Capacity Field is Required")
