@@ -5,6 +5,62 @@
     <title>Assign Sections</title>
 </head>
 <body>
-
+    <h1>Assign Sections</h1>
+    <form action="/assignSections/" method="post">
+        {% csrf_token %}
+        <table>
+            <tr>
+                <td>Select Course:</td>
+                <td>
+                    <select name="course_id" required>
+                        <option value="" disabled selected>Select a course</option>
+                        {% for course in courses %}
+                            <option value="{{ course.id }}">{{ course.title }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Select Section:</td>
+                <td>
+                    <select name="section_id" required>
+                        <option value="" disabled selected>Select a section</option>
+                        {% for section in sections %}
+                            <option value="{{ section.id }}">{{ section.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Assign Instructor:</td>
+                <td>
+                    <select name="instructor_id" required>
+                        <option value="" disabled selected>Select an instructor</option>
+                        {% for instructor in instructors %}
+                            <option value="{{ instructor.id }}">{{ instructor.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Assign TA:</td>
+                <td>
+                    <select name="ta_id" required>
+                        <option value="" disabled selected>Select a TA</option>
+                        {% for ta in tas %}
+                            <option value="{{ ta.id }}">{{ ta.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+        </table>
+        <br>
+        <input type="submit" value="Assign">
+    </form>
+    {% if message %}
+        <div style="color:red; font-size: 1.1em;">
+            {{ message }}
+        </div>
+    {% endif %}
 </body>
 </html>

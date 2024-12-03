@@ -380,6 +380,10 @@ class createSectionTest(TestCase):
         self.assertEqual(resp.context["message"], "Course Field is Required")
     def test_noCapacity(self):
         self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.post("/createsection/",{"section_name": "testSection", "instructor_id" : 3, "schedule": "Tuesday, 2:00 PM - 4:00 PM","course_id": "2", "max_capacity" : 10}, follow=True)
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.context["message"], "Capacity Field is Required")
+        response = self.client.post('/createsection/', {
+            'section_name': 'testSection',
+            'instructor_id': '3',
+            'schedule': 'Tuesday, 2:00 PM - 4:00 PM',
+            'course_id': '2',
+        }, follow=True)
+        self.assertEqual(response.context["message"], "Capacity Field is Required")

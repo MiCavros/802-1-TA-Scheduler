@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Account</title>
+</head>
+<body>
+    <h1>Edit Account</h1>
+    <form action="/editAccount/" method="post">
+        {% csrf_token %}
+        <table>
+            <tr>
+                <td>First Name:</td>
+                <td><input type="text" name="first_name" value="{{ user.first_name }}"></td>
+            </tr>
+            <tr>
+                <td>Last Name:</td>
+                <td><input type="text" name="last_name" value="{{ user.last_name }}"></td>
+            </tr>
+            <tr>
+                <td>Email (required):</td>
+                <td><input type="email" name="email" value="{{ user.email }}" required></td>
+            </tr>
+            <tr>
+                <td>Phone Number:</td>
+                <td><input type="tel" name="phone" value="{{ user.phone }}"></td>
+            </tr>
+            <tr>
+                <td>Password:</td>
+                <td><input type="password" name="password"></td>
+            </tr>
+            <tr>
+                <td>Confirm Password:</td>
+                <td><input type="password" name="confirm_password"></td>
+            </tr>
+        </table>
+        <br>
+        <input type="submit" value="Update Account">
+    </form>
+    {% if message %}
+        <div style="color:red; font-size: 1.1em;">
+            {{ message }}
+        </div>
+    {% endif %}
+</body>
+</html>
