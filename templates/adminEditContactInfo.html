@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Edit Contact Info</title>
+    <title>Admin Edit Contact Info</title>
 </head>
 <body>
-    <h1>Edit Contact Information</h1>
-    <form action="/editContactInfo/" method="post">
+    <h1>Admin Edit Contact Information</h1>
+    <form action="/adminEditContactInfo/{{ user.id }}" method="post">
         {% csrf_token %}
         <table>
             <tr>

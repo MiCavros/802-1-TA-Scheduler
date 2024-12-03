@@ -24,16 +24,18 @@ class userPrivateInfo(models.Model):
 class Class(models.Model):
     title = models.CharField(max_length=50)
     description = models.CharField(max_length=1000)
+    schedule = models.CharField(max_length=255, default="Default Schedule")
     id = models.IntegerField(primary_key=True)
     location = models.CharField(max_length=50)
     time = models.DateTimeField
-    schedule = models.TextField(null=True, blank=True)
     assignments = models.TextField(null=True, blank=True) #optional assignments
     instructor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
 class Section(models.Model):
-    sectionId = models.IntegerField(primary_key=True)
-    classId = models.ForeignKey(Class, on_delete=models.CASCADE, null=True)
-    TA = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    sectionId = models.AutoField(primary_key=True)
+    classId = models.ForeignKey(Class, on_delete=models.CASCADE, default=1)
+    TA = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
+    schedule = models.CharField(max_length=255, default="Default Schedule")
+    max_capacity = models.IntegerField(default=30)
 
 

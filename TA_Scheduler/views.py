@@ -165,7 +165,34 @@ class CreateSection(View):
     def get(self, request):
         return render(request, 'createSection.html')
     def post(self, request):
-        return render(request, "createSection.html")
+        section_name = request.POST.get("section_name")
+        instructor_id = request.POST.get("instructor_id")
+        schedule = request.POST.get("schedule")
+        course_id = request.POST.get("course_id")
+        max_capacity = request.POST.get("max_capacity")
+
+        if not section_name:
+            return render(request, "createSection.html", {"message": "Name Field is Required"})
+        if not instructor_id:
+            return render(request, "createSection.html", {"message": "Instructor Field is Required"})
+        if not course_id:
+            return render(request, "createSection.html", {"message": "Course Field is Required"})
+        if not max_capacity or not max_capacity.isdigit():
+            return render(request, "createSection.html", {"message": "Capacity Field is Required"})
+        if not section_name.isalnum():
+            return render(request, "createSection.html", {"message": "Section Name is Invalid"})
+
+        instructor = User.objects.get(id=instructor_id)
+        course = Class.objects.get(id=course_id)
+        Section.objects.create(
+            sectionId=Section.objects.count() + 1,
+            classId=course,
+            TA=instructor,
+            schedule=schedule,
+            max_capacity=int(max_capacity)
+        )
+
+        return render(request, "createSection.html", {"message": "Section Created Successfully"})
 
 class AssignSection(View):
     def get(self, request):
@@ -190,3 +217,21 @@ class manageUser(View):
         return render(request, 'manageUsers.html')
     def post(self, request):
         return render(request, 'manageUsers.html')
+
+class editAccount(View):
+    def get(self, request):
+        return render(request, 'editAccount.html')
+    def post(self, request):
+        return render(request, 'editAccount.html')
+    
+class assignSections(View):
+    def get(self, request):
+        return render(request, 'assignSections.html')
+    def post(self, request):
+        return render(request, 'assignSections.html')
+    
+class adminEditContactInfo(View):
+    def get(self, request):
+        return render(request, 'adminEditContactInfo.html')
+    def post(self, request):
+        return render(request, 'adminEditContactInfo.html')
