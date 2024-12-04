@@ -491,5 +491,141 @@ class testEditAccount(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["message"], "Invalid Phone Number")
 
+class AssignSectionTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.admin_user = User.objects.create(id=1, userType="Admin", email="adminUser@uwm.edu", password="1234")
+        self.instructor_user = User.objects.create(id=2, userType="Instructor", email="instructorUser@uwm.edu", password="5678")
+        self.ta_user = User.objects.create(id=3, userType="TA", email="taUser@uwm.edu", password="4321")
+
+        # Create Class and Section
+        self.course = Class.objects.create(id=1, title="Test Course", description="Test Description", schedule="Start Date: 01/01/2025, End Date: 05/01/2025")
+        self.section = Section.objects.create(id=1, section_number="101", course=self.course)
+
+    # Positive Test: Admin assigns a TA to a section successfully
+    def test_adminAssignTASuccess(self):
+        self.client.force_login(self.admin_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": self.ta_user.id,
+            "section_id": self.section.id,
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "TA successfully assigned to the section.")
+        updated_section = Section.objects.get(id=self.section.id)
+        self.assertEqual(updated_section.ta, self.ta_user)
+
+    # Positive Test: Instructor assigns a TA to a section successfully
+    def test_instructorAssignTASuccess(self):
+        self.client.force_login(self.instructor_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": self.ta_user.id,
+            "section_id": self.section.id,
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "TA successfully assigned to the section.")
+        updated_section = Section.objects.get(id=self.section.id)
+        self.assertEqual(updated_section.ta, self.ta_user)
+
+    # Negative Test: TA tries to assign themselves to a section
+    def test_taAssignThemselves(self):
+        self.client.force_login(self.ta_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": self.ta_user.id,
+            "section_id": self.section.id,
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 403)  # Forbidden
+        self.assertIn("TAs cannot assign themselves to sections", resp.context['errors'])
+
+    # Negative Test: TA tries to assign another TA to a section
+    def test_taAssignOtherTA(self):
+        other_ta = User.objects.create(
+            id=4, userType="TA", email="otherTA@uwm.edu", password="9876"
+        )
+        self.client.force_login(self.ta_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": other_ta.id,
+            "section_id": self.section.id,
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 403)  # Forbidden
+        self.assertIn("TAs cannot assign other TAs to sections", resp.context['errors'])
+
+    # Negative Test: Empty TA 
+    def test_emptyTA(self):
+        self.client.force_login(self.admin_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": "",
+            "section_id": self.section.id,
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("TA ID cannot be empty", resp.context['errors'])
+
+    # Negative Test: Empty Section 
+    def test_emptySection(self):
+        self.client.force_login(self.admin_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": self.ta_user.id,
+            "section_id": "",
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Section ID cannot be empty", resp.context['errors'])
+
+    # Negative Test: Invalid TA 
+    def test_invalidTA(self):
+        self.client.force_login(self.admin_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": 999,  # Non-existent TA ID
+            "section_id": self.section.id,
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("TA not found", resp.context['errors'])
+
+    # Negative Test: Invalid Section
+    def test_invalidSection(self):
+        self.client.force_login(self.admin_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": self.ta_user.id,
+            "section_id": 999,  # Non-existent Section ID
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Section not found", resp.context['errors'])
+
+    # Negative Test: TA already assigned to the section
+    def test_taAlreadyAssigned(self):
+        self.section.ta = self.ta_user
+        self.section.save()
+        self.client.force_login(self.admin_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": self.ta_user.id,
+            "section_id": self.section.id,
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("TA is already assigned to this section", resp.context['errors'])
+
+    # Negative Test: Section already assigned to another TA
+    def test_sectionAssignedToAnotherTA(self):
+        other_ta = User.objects.create(
+            id=4, userType="TA", email="otherTA@uwm.edu", password="9876"
+        )
+        self.section.ta = other_ta
+        self.section.save()
+        self.client.force_login(self.admin_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": self.ta_user.id,
+            "section_id": self.section.id,
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("This section is already assigned to another TA", resp.context['errors'])
+
+
 
 
