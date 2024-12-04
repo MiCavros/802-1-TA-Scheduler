@@ -83,7 +83,7 @@ class CreateUser(View):
         if not noUser:
             return render(request, "createUser.html", {"message": "There is already a user with that email"})
 
-        newUser = User.objects.create(fName=request.POST['fName'].lower(), lName=request.POST['lName'].lower(), MidInit=request.POST['midI'].lower(), id=newID, userType=request.POST['role'].upper(), email=request.POST['email'].lower(), password=request.POST['password'].lower())
+        newUser = User.objects.create(fName=request.POST['fName'].lower(), lName=request.POST['lName'].lower(), MidInit=request.POST['midI'].lower(), id=newID, userType=request.POST['role'], email=request.POST['email'].lower(), password=request.POST['password'].lower())
         return render(request, 'createUser.html', {"message" : "User Created Successfully", "userType": m.userType})
 
 class CreateCourse(View):
@@ -207,9 +207,15 @@ class editContactInfo(View):
         return render(request, 'editContactInfo.html')
 
 
-class manageUser(View):
+class manageUsers(View):
     def get(self, request):
-        return render(request, 'manageUsers.html')
+        userID = request.session["id"]
+        m = User.objects.get(id=userID)
+        if m.userType == "Admin":
+            return render(request, 'manageUsers.html', {"userType": m.userType})
+        else:
+            return render(request, 'userNoAccess.html', {"userType": m.userType, "message": "User Cannot Access This Page"})
+
     def post(self, request):
         return render(request, 'manageUsers.html')
 
