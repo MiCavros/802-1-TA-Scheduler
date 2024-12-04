@@ -1,4 +1,5 @@
 from django.test import TestCase, Client
+from django.urls import reverse
 from .models import User, userPublicInfo, userPrivateInfo, Class, Section
 
 class LoginTest(TestCase):
@@ -389,6 +390,25 @@ class createSectionTest(TestCase):
         self.assertEqual(response.context["message"], "Capacity Field is Required")
 
 
+class DeleteUserTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.admin_user = User.objects.create(id=1, userType="Admin", email="admin@uwm.edu", password="adminpass")
+        self.user_to_delete = User.objects.create(id=2, userType="TA", email="deleteMe@uwm.edu", password="deletepass")
+        self.client.post("/", {"email": "admin@uwm.edu", "password": "adminpass"}, follow=True)
+
+    def test_deleteUser(self):
+        resp = self.client.post(reverse('delete_user'), {"user_id": self.user_to_delete.id}, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "User deleted successfully")
+        with self.assertRaises(User.DoesNotExist):
+            User.objects.get(id=self.user_to_delete.id)
+
+    def test_deleteNonExistentUser(self):
+        resp = self.client.post(reverse('delete_user'), {"user_id": 999}, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "User does not exist")
+
 class testManageUsers(TestCase):
     def setUp(self):
         self.client = Client()
@@ -418,11 +438,6 @@ class testManageUsers(TestCase):
         resp = self.client.get("/manageusers/", follow=True)
         self.assertEqual(resp.context["userType"], "Admin")
         self.assertEqual(resp.status_code, 200)
-
-    def test_deleteAccount(self):
-        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.get("/deleteuser/3", follow=True)
-        ##Unsure what to do to simulate deleting a user, or how to press "yes"
 
     ##Tests for successfull display of all users, tests for attempting to delete admins, and tests for successful redirect
 
@@ -625,7 +640,6 @@ class AssignSectionTest(TestCase):
 
         self.assertEqual(resp.status_code, 200)
         self.assertIn("This section is already assigned to another TA", resp.context['errors'])
-
 
 
 
