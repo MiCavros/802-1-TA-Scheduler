@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from TA_Scheduler.views import Login, Home, CreateUser, CreateCourse, manageUser, CreateSection, editUser, \
+from TA_Scheduler.views import Login, Home, CreateUser, CreateCourse, manageUser, CreateSection, \
     editContactInfo, editAccount, assignSections, adminEditContactInfo
 from . import views
 
@@ -31,7 +31,7 @@ urlpatterns = [
     path('createuser/', CreateUser.as_view(), name='Create User'),
     path('create-course/', CreateCourse.as_view(), name='Create Course'),
     path('editcontactinfo/', editContactInfo.as_view(), name='Edit Contact Info'),
-    path('edituser/', editUser.as_view(), name='Edit User'),
+
     path('manageuser/', manageUser.as_view(), name='Manage Users'),
     path('createsection/', CreateSection.as_view(), name='Create Section'),
     path('editaccount/', editAccount.as_view(), name='Edit Account'),
