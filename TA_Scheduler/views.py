@@ -206,11 +206,6 @@ class editContactInfo(View):
     def post(self, request):
         return render(request, 'editContactInfo.html')
 
-class editUser(View):
-    def get(self, request):
-        return render(request, 'editUser.html')
-    def post(self, request):
-        return render(request, 'editUser.html')
 
 class manageUser(View):
     def get(self, request):

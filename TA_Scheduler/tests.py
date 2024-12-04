@@ -387,3 +387,109 @@ class createSectionTest(TestCase):
             'course_id': '2',
         }, follow=True)
         self.assertEqual(response.context["message"], "Capacity Field is Required")
+
+
+class testManageUsers(TestCase):
+    def setUp(self):
+        self.client = Client()
+        testAdminUser = User(id=2, userType="ADMIN", email="testAdminUser@uwm.edu", password="2222")
+        testAdminUser.save()
+        testInstructor = User(id=3, userType="INSTRUCTOR", email="testInstructor@uwm.edu", password="4444")
+        testInstructor.save()
+        testUser = User(id=1, userType="TA", email="testUser@uwm.edu", password="1234")
+        testUser.save()
+
+    def test_taAccess(self):
+        self.client.post("/", {"email": "testUser@uwm.edu", "password": "1234"}, follow=True)
+        resp = self.client.get("/manageusers/", follow=True)
+        self.assertEqual(resp.context["userType"], "TA")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "User Cannot Access This Page")
+
+    def test_InstructorAccess(self):
+        self.client.post("/", {"email": "testInstructor@uwm.edu", "password": "4444"}, follow=True)
+        resp = self.client.get("/manageusers/", follow=True)
+        self.assertEqual(resp.context["userType"], "Instructor")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "User Cannot Access This Page")
+
+    def test_adminAccess(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.get("/manageusers/", follow=True)
+        self.assertEqual(resp.context["userType"], "Admin")
+        self.assertEqual(resp.status_code, 200)
+
+    def test_deleteAccount(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.get("/deleteuser/3", follow=True)
+        ##Unsure what to do to simulate deleting a user, or how to press "yes"
+
+    ##Tests for successfull display of all users, tests for attempting to delete admins, and tests for successful redirect
+
+class testEditAccount(TestCase):
+    def setUp(self):
+        testAdminUser = User(id=2, userType="ADMIN", email="testAdminUser@uwm.edu", password="2222")
+        testAdminUser.save()
+        testInstructor = User(id=3, userType="INSTRUCTOR", email="testInstructor@uwm.edu", password="4444")
+        testInstructor.save()
+        testUser = User(id=1, userType="TA", email="testUser@uwm.edu", password="1234")
+        testUser.save()
+
+    def test_taAccess(self):
+        self.client.post("/", {"email": "testUser@uwm.edu", "password": "1234"}, follow=True)
+        resp = self.client.get("/editAccount/", follow=True)
+        self.assertEqual(resp.context["userType"], "TA")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "User Cannot Access This Page")
+
+    def test_InstructorAccess(self):
+        self.client.post("/", {"email": "testInstructor@uwm.edu", "password": "4444"}, follow=True)
+        resp = self.client.get("/editAccount/", follow=True)
+        self.assertEqual(resp.context["userType"], "Instructor")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "User Cannot Access This Page")
+
+    def test_adminAccess(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.get("/editAccount/", follow=True)
+        self.assertEqual(resp.context["userType"], "Admin")
+        self.assertEqual(resp.status_code, 200)
+
+    def test_editUserSuccessfully(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.post("/editaccount/1", {"first_name": "NewTestUser", "email": "newNewTestUser@uwm.edu", "last_name": "NewLastName",  "password" : "1222", "confirm_password" : "1222", "phone" : "4144444444"}, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "Accounted Updated Successfully")
+        newUser = User.objects.get(email="newnewtestuser@uwm.edu")
+        self.assertEqual(newUser.userType, "TA")
+        self.assertEqual(newUser.password, "1222")
+        self.assertEqual(newUser.first_name, "NewTestUser")
+        self.assertEqual(newUser.last_name, "NewLastName")
+        self.assertEqual(newUser.phone, "4144444444")
+
+    def test_invalidEmail(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.post("/editaccount/1", {"first_name": "NewTestUser", "email": "newNewTestUser", "last_name": "NewLastName",  "password" : "1222", "confirm_password" : "1222", "phone" : "4144444444"}, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "Must use valid UWM.edu email")
+
+    def test_NoEmail(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.post("/editaccount/1",{"first_name": "NewTestUser", "last_name": "NewLastName", "password": "1222", "confirm_password": "1222", "phone": "4144444444"}, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "Email is a required field")
+
+    def test_PasswordsDontMatch(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.post("/editaccount/1",{"first_name": "NewTestUser", "last_name": "NewLastName", "password": "1222","confirm_password": "1232", "phone": "4144444444"}, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "Passwords Don't Match")
+
+    def test_InvalidPhone(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.post("/editaccount/1",{"first_name": "NewTestUser", "last_name": "NewLastName", "password": "1222","confirm_password": "1222", "phone": "4"}, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "Invalid Phone Number")
+
+
+
