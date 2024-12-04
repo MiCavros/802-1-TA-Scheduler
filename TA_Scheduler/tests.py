@@ -389,6 +389,7 @@ class createSectionTest(TestCase):
         }, follow=True)
         self.assertEqual(response.context["message"], "Capacity Field is Required")
 
+
 class DeleteUserTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -407,3 +408,238 @@ class DeleteUserTest(TestCase):
         resp = self.client.post(reverse('delete_user'), {"user_id": 999}, follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["message"], "User does not exist")
+
+class testManageUsers(TestCase):
+    def setUp(self):
+        self.client = Client()
+        testAdminUser = User(id=2, userType="ADMIN", email="testAdminUser@uwm.edu", password="2222")
+        testAdminUser.save()
+        testInstructor = User(id=3, userType="INSTRUCTOR", email="testInstructor@uwm.edu", password="4444")
+        testInstructor.save()
+        testUser = User(id=1, userType="TA", email="testUser@uwm.edu", password="1234")
+        testUser.save()
+
+    def test_taAccess(self):
+        self.client.post("/", {"email": "testUser@uwm.edu", "password": "1234"}, follow=True)
+        resp = self.client.get("/manageusers/", follow=True)
+        self.assertEqual(resp.context["userType"], "TA")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "User Cannot Access This Page")
+
+    def test_InstructorAccess(self):
+        self.client.post("/", {"email": "testInstructor@uwm.edu", "password": "4444"}, follow=True)
+        resp = self.client.get("/manageusers/", follow=True)
+        self.assertEqual(resp.context["userType"], "Instructor")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "User Cannot Access This Page")
+
+    def test_adminAccess(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.get("/manageusers/", follow=True)
+        self.assertEqual(resp.context["userType"], "Admin")
+        self.assertEqual(resp.status_code, 200)
+
+    ##Tests for successfull display of all users, tests for attempting to delete admins, and tests for successful redirect
+
+class testEditAccount(TestCase):
+    def setUp(self):
+        testAdminUser = User(id=2, userType="ADMIN", email="testAdminUser@uwm.edu", password="2222")
+        testAdminUser.save()
+        testInstructor = User(id=3, userType="INSTRUCTOR", email="testInstructor@uwm.edu", password="4444")
+        testInstructor.save()
+        testUser = User(id=1, userType="TA", email="testUser@uwm.edu", password="1234")
+        testUser.save()
+
+    def test_taAccess(self):
+        self.client.post("/", {"email": "testUser@uwm.edu", "password": "1234"}, follow=True)
+        resp = self.client.get("/editAccount/", follow=True)
+        self.assertEqual(resp.context["userType"], "TA")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "User Cannot Access This Page")
+
+    def test_InstructorAccess(self):
+        self.client.post("/", {"email": "testInstructor@uwm.edu", "password": "4444"}, follow=True)
+        resp = self.client.get("/editAccount/", follow=True)
+        self.assertEqual(resp.context["userType"], "Instructor")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "User Cannot Access This Page")
+
+    def test_adminAccess(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.get("/editAccount/", follow=True)
+        self.assertEqual(resp.context["userType"], "Admin")
+        self.assertEqual(resp.status_code, 200)
+
+    def test_editUserSuccessfully(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.post("/editaccount/1", {"first_name": "NewTestUser", "email": "newNewTestUser@uwm.edu", "last_name": "NewLastName",  "password" : "1222", "confirm_password" : "1222", "phone" : "4144444444"}, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "Accounted Updated Successfully")
+        newUser = User.objects.get(email="newnewtestuser@uwm.edu")
+        self.assertEqual(newUser.userType, "TA")
+        self.assertEqual(newUser.password, "1222")
+        self.assertEqual(newUser.first_name, "NewTestUser")
+        self.assertEqual(newUser.last_name, "NewLastName")
+        self.assertEqual(newUser.phone, "4144444444")
+
+    def test_invalidEmail(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.post("/editaccount/1", {"first_name": "NewTestUser", "email": "newNewTestUser", "last_name": "NewLastName",  "password" : "1222", "confirm_password" : "1222", "phone" : "4144444444"}, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "Must use valid UWM.edu email")
+
+    def test_NoEmail(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.post("/editaccount/1",{"first_name": "NewTestUser", "last_name": "NewLastName", "password": "1222", "confirm_password": "1222", "phone": "4144444444"}, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "Email is a required field")
+
+    def test_PasswordsDontMatch(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.post("/editaccount/1",{"first_name": "NewTestUser", "last_name": "NewLastName", "password": "1222","confirm_password": "1232", "phone": "4144444444"}, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "Passwords Don't Match")
+
+    def test_InvalidPhone(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.post("/editaccount/1",{"first_name": "NewTestUser", "last_name": "NewLastName", "password": "1222","confirm_password": "1222", "phone": "4"}, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "Invalid Phone Number")
+
+class AssignSectionTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.admin_user = User.objects.create(id=1, userType="Admin", email="adminUser@uwm.edu", password="1234")
+        self.instructor_user = User.objects.create(id=2, userType="Instructor", email="instructorUser@uwm.edu", password="5678")
+        self.ta_user = User.objects.create(id=3, userType="TA", email="taUser@uwm.edu", password="4321")
+
+        # Create Class and Section
+        self.course = Class.objects.create(id=1, title="Test Course", description="Test Description", schedule="Start Date: 01/01/2025, End Date: 05/01/2025")
+        self.section = Section.objects.create(id=1, section_number="101", course=self.course)
+
+    # Positive Test: Admin assigns a TA to a section successfully
+    def test_adminAssignTASuccess(self):
+        self.client.force_login(self.admin_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": self.ta_user.id,
+            "section_id": self.section.id,
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "TA successfully assigned to the section.")
+        updated_section = Section.objects.get(id=self.section.id)
+        self.assertEqual(updated_section.ta, self.ta_user)
+
+    # Positive Test: Instructor assigns a TA to a section successfully
+    def test_instructorAssignTASuccess(self):
+        self.client.force_login(self.instructor_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": self.ta_user.id,
+            "section_id": self.section.id,
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "TA successfully assigned to the section.")
+        updated_section = Section.objects.get(id=self.section.id)
+        self.assertEqual(updated_section.ta, self.ta_user)
+
+    # Negative Test: TA tries to assign themselves to a section
+    def test_taAssignThemselves(self):
+        self.client.force_login(self.ta_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": self.ta_user.id,
+            "section_id": self.section.id,
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 403)  # Forbidden
+        self.assertIn("TAs cannot assign themselves to sections", resp.context['errors'])
+
+    # Negative Test: TA tries to assign another TA to a section
+    def test_taAssignOtherTA(self):
+        other_ta = User.objects.create(
+            id=4, userType="TA", email="otherTA@uwm.edu", password="9876"
+        )
+        self.client.force_login(self.ta_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": other_ta.id,
+            "section_id": self.section.id,
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 403)  # Forbidden
+        self.assertIn("TAs cannot assign other TAs to sections", resp.context['errors'])
+
+    # Negative Test: Empty TA 
+    def test_emptyTA(self):
+        self.client.force_login(self.admin_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": "",
+            "section_id": self.section.id,
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("TA ID cannot be empty", resp.context['errors'])
+
+    # Negative Test: Empty Section 
+    def test_emptySection(self):
+        self.client.force_login(self.admin_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": self.ta_user.id,
+            "section_id": "",
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Section ID cannot be empty", resp.context['errors'])
+
+    # Negative Test: Invalid TA 
+    def test_invalidTA(self):
+        self.client.force_login(self.admin_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": 999,  # Non-existent TA ID
+            "section_id": self.section.id,
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("TA not found", resp.context['errors'])
+
+    # Negative Test: Invalid Section
+    def test_invalidSection(self):
+        self.client.force_login(self.admin_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": self.ta_user.id,
+            "section_id": 999,  # Non-existent Section ID
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Section not found", resp.context['errors'])
+
+    # Negative Test: TA already assigned to the section
+    def test_taAlreadyAssigned(self):
+        self.section.ta = self.ta_user
+        self.section.save()
+        self.client.force_login(self.admin_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": self.ta_user.id,
+            "section_id": self.section.id,
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("TA is already assigned to this section", resp.context['errors'])
+
+    # Negative Test: Section already assigned to another TA
+    def test_sectionAssignedToAnotherTA(self):
+        other_ta = User.objects.create(
+            id=4, userType="TA", email="otherTA@uwm.edu", password="9876"
+        )
+        self.section.ta = other_ta
+        self.section.save()
+        self.client.force_login(self.admin_user)
+        resp = self.client.post("/assign-section/", {
+            "ta_id": self.ta_user.id,
+            "section_id": self.section.id,
+        }, follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("This section is already assigned to another TA", resp.context['errors'])
+
+
+
