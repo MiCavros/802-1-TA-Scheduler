@@ -1,4 +1,5 @@
 from django.test import TestCase, Client
+from django.urls import reverse
 from .models import User, userPublicInfo, userPrivateInfo, Class, Section
 
 class LoginTest(TestCase):
@@ -387,3 +388,22 @@ class createSectionTest(TestCase):
             'course_id': '2',
         }, follow=True)
         self.assertEqual(response.context["message"], "Capacity Field is Required")
+
+class DeleteUserTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.admin_user = User.objects.create(id=1, userType="Admin", email="admin@uwm.edu", password="adminpass")
+        self.user_to_delete = User.objects.create(id=2, userType="TA", email="deleteMe@uwm.edu", password="deletepass")
+        self.client.post("/", {"email": "admin@uwm.edu", "password": "adminpass"}, follow=True)
+
+    def test_deleteUser(self):
+        resp = self.client.post(reverse('delete_user'), {"user_id": self.user_to_delete.id}, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "User deleted successfully")
+        with self.assertRaises(User.DoesNotExist):
+            User.objects.get(id=self.user_to_delete.id)
+
+    def test_deleteNonExistentUser(self):
+        resp = self.client.post(reverse('delete_user'), {"user_id": 999}, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["message"], "User does not exist")

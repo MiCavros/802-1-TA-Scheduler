@@ -235,3 +235,14 @@ class adminEditContactInfo(View):
         return render(request, 'adminEditContactInfo.html')
     def post(self, request):
         return render(request, 'adminEditContactInfo.html')
+
+def delete_user(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        try:
+            user = User.objects.get(id=user_id)
+            user.delete()
+            return render(request, "manageUsers.html", {"message": "User deleted successfully"})
+        except User.DoesNotExist:
+            return render(request, "manageUsers.html", {"message": "User does not exist"})
+    return render(request, "manageUsers.html", {"message": "Invalid request method"})
