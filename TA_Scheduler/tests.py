@@ -439,7 +439,10 @@ class testManageUsers(TestCase):
         self.assertEqual(resp.context["userType"], "Admin")
         self.assertEqual(resp.status_code, 200)
 
-    ##Tests for successfull display of all users, tests for attempting to delete admins, and tests for successful redirect
+    def test_displaySuccess(self):
+        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.get("/manageusers/", follow=True)
+        self.assertContains(resp.context["users"], User.objects.values_list())
 
 class testEditAccount(TestCase):
     def setUp(self):
