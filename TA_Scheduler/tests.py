@@ -187,35 +187,35 @@ class CreateCourse(TestCase):
 class createUserTest(TestCase):
     def setUp(self):
         self.client = Client()
-        testUser = User(id=1, userType="TA", email="testUser@uwm.edu", password="1234")
-        testAdminUser = User(id=2, userType="Admin", email="testAdminUser@uwm.edu", password="2222")
-        testInstructor = User(id=3, userType="Instructor", email="testInstructor@uwm.edu", password="4343")
+        testUser = User(id=1, userType="TA", email="testuser@uwm.edu", password="1234")
+        testAdminUser = User(id=2, userType="Admin", email="testadminuser@uwm.edu", password="2222")
+        testInstructor = User(id=3, userType="Instructor", email="testinstructor@uwm.edu", password="4343")
         testUser.save()
         testAdminUser.save()
         testInstructor.save()
 
     def test_taAccess(self):
-        self.client.post("/", {"email": "testUser@uwm.edu", "password": "1234"}, follow=True)
+        self.client.post("/", {"email": "testuser@uwm.edu", "password": "1234"}, follow=True)
         resp = self.client.get("/createuser/", follow=True)
         self.assertEqual(resp.context["userType"], "TA")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["message"], "User Cannot Access This Page")
 
     def test_InstructorAccess(self):
-        self.client.post("/", {"email": "testInstructor@uwm.edu", "password": "4343"}, follow=True)
+        self.client.post("/", {"email": "testinstructor@uwm.edu", "password": "4343"}, follow=True)
         resp = self.client.get("/createuser/", follow=True)
         self.assertEqual(resp.context["userType"], "Instructor")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["message"], "User Cannot Access This Page")
 
     def test_adminAccess(self):
-        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        self.client.post("/", {"email": "testadminuser@uwm.edu", "password": "2222"}, follow=True)
         resp = self.client.get("/createuser/", follow=True)
         self.assertEqual(resp.context["userType"], "Admin")
         self.assertEqual(resp.status_code, 200)
 
     def test_createUserSuccessfully(self):
-        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        self.client.post("/", {"email": "testadminuser@uwm.edu", "password": "2222"}, follow=True)
         resp = self.client.post("/createuser/", {"role": "TA", "email": "newTestUser@uwm.edu", "password": "4444",  "fName" : "Test", "midI" : "T", "lName" : "User"}, follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["message"], "User Created Successfully")
@@ -225,32 +225,32 @@ class createUserTest(TestCase):
 
 
     def test_invalidEmail(self):
-        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        self.client.post("/", {"email": "testadminuser@uwm.edu", "password": "2222"}, follow=True)
         resp = self.client.post("/createuser/", {"role": "TA", "email": "newTestUser", "password": "4444"}, follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["message"], "Must use valid UWM.edu email")
 
     def test_NoEmail(self):
-        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        self.client.post("/", {"email": "testadminuser@uwm.edu", "password": "2222"}, follow=True)
         resp = self.client.post("/createuser/", {"role": "TA", "email": "", "password": "4444"}, follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["message"], "Email is a required field")
 
     def test_NoPassword(self):
-        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
+        self.client.post("/", {"email": "testadminuser@uwm.edu", "password": "2222"}, follow=True)
         resp = self.client.post("/createuser/", {"role": "TA", "email": "newTestUser", "password": ""}, follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["message"], "Password is a required field")
 
     def test_noRole(self):
-        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.post("/createuser/", {"email": "newTestUser@uwm.edu", "password": "4321", "role": ""}, follow=True)
+        self.client.post("/", {"email": "testadminuser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.post("/createuser/", {"email": "newtestuser@uwm.edu", "password": "4321", "role": ""}, follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["message"], "Role is a required field")
 
     def test_sameEmail(self):
-        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.post("/createuser/", {"email": "testUser@uwm.edu", "password": "4321", "role": "TA"}, follow=True)
+        self.client.post("/", {"email": "testadminuser@uwm.edu", "password": "2222"}, follow=True)
+        resp = self.client.post("/createuser/", {"email": "testuser@uwm.edu", "password": "4321", "role": "TA"}, follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["message"], "There is already a user with that email")
 

@@ -1,4 +1,5 @@
 import random
+from idlelib.pyshell import UserInputTaggingDelegator
 from operator import truediv
 from sched import scheduler
 
@@ -20,7 +21,7 @@ class Login(View):
         if request.POST['email'] == "" or request.POST['password'] == "":
             return render(request, "login.html", {"message": "Email and/or Password cannot be blank"})
         try:
-            user = User.objects.get(email=request.POST['email'])
+            user = User.objects.get(email=request.POST['email'].lower())
             badPassword = (user.password != request.POST['password'])
         except:
             noUser = True
@@ -55,7 +56,6 @@ class CreateUser(View):
         userID = request.session["id"]
         m = User.objects.get(id=userID)
         noUser = False
-        idInUse = True
 
         if request.POST['email'] == "":
             return render(request, "createUser.html", {"message": "Email is a required field", "userType": m.userType})
@@ -67,27 +67,16 @@ class CreateUser(View):
                           {"message": "Role is a required field", "userType": m.userType})
         if "@uwm.edu" not in request.POST['email']:
             return render(request, "createUser.html", {"message": "Must use valid UWM.edu email"})
-
         try:
-            user = User.objects.get(email=request.POST['email'])
+            user = User.objects.get(request.POST['email'].lower())
         except:
             noUser = True
-
-        while idInUse:
-            newID = random.randint(0, 500)
-            try:
-                userID = User.objects.get(id=newID)
-                idInUse = True
-            except:
-                idInUse = False
-
-
         if not noUser:
             return render(request, "createUser.html", {"message": "There is already a user with that email"})
+        newID = generateUserID(request.POST['email'].lower)
 
-
-
-        newUser = User.objects.create(fName=request.POST['fName'].lower(), lName=request.POST['lName'].lower(), MidInit=request.POST['midI'].lower(), id=newID, userType=request.POST['role'], email=request.POST['email'].lower(), password=request.POST['password'].lower())
+        addUser(newID, request.POST['fName'].lower(), request.POST['lName'].lower(),request.POST['midI'].lower, request.POST['role'], request.POST['email'].lower(), request.POST['password'])
+        #newUser = User.objects.create(fName=request.POST['fName'].lower(), lName=request.POST['lName'].lower(), MidInit=request.POST['midI'].lower(), id=newID, userType=request.POST['role'], email=request.POST['email'].lower(), password=request.POST['password'].lower())
         return render(request, 'createUser.html', {"message" : "User Created Successfully", "userType": m.userType})
 
 class CreateCourse(View):
@@ -223,17 +212,22 @@ class manageUsers(View):
             return redirect("/editaccount/")
         else:
             print(editUser_id)
-            deleteUser(request, editUser_id, Users)
+            try:
+                user = User.objects.get(id=editUser_id)
+                user.delete()
+                return render(request, "manageUsers.html", {"message": "User deleted successfully", "users": Users})
+            except User.DoesNotExist:
+                return render(request, "manageUsers.html", {"message": "User does not exist", "users": Users})
+
+
 class editAccount(View):
 
     def get(self, request):
         editUser = retrieveEditUserID(request)
         m = retrieveSessionID(request)
-        if m.userType == "Admin":
 
-            return render(request, 'editAccount.html', {"userType": m.userType, "user": editUser})
-        else:
-            return render(request, 'userNoAccess.html',{"userType": m.userType, "message": "User Cannot Access This Page"})
+
+        return render(request, 'editAccount.html', {"userType": m.userType, "user": editUser})
 
     def post(self, request):
         User = retrieveEditUserID(request)
@@ -283,8 +277,12 @@ def retrieveSessionID(request):
     return m
 
 def retrieveEditUserID(request):
-    editUserID = request.session["editUserID"]
-    editUser = User.objects.get(id=editUserID)
+
+    try:
+        editUserID = request.session["editUserID"]
+        editUser = User.objects.get(id=editUserID)
+    except:
+        editUser = User.objects.get(id=request.session['id'])
     return editUser
 
 def editUser(user, first_name, last_name, email, password):
@@ -294,6 +292,9 @@ def editUser(user, first_name, last_name, email, password):
     j.email = email
     j.password = password
     j.save()
+
+def addUser(id, first_name, last_name, midI, userType, email, password):
+    n = User.objects.create(id= id,fName= first_name, lName = last_name, MidInit = midI, email = email, password = password, userType = userType)
 
 def createSection(request, section_name, instructor_id, schedule, course_id, max_capacity):
     instructor = User.objects.get(id=instructor_id)
@@ -305,3 +306,14 @@ def createSection(request, section_name, instructor_id, schedule, course_id, max
         schedule=schedule,
         max_capacity=int(max_capacity)
     )
+def generateUserID(email):
+    idInUse = True
+
+    while idInUse:
+        newID = random.randint(0, 500)
+        try:
+            userID = User.objects.get(id=newID)
+            idInUse = True
+        except:
+            idInUse = False
+    return newID
