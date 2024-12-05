@@ -17,7 +17,6 @@
                 <th>Last Name</th>
                 <th>Role</th>
                 <th>Email</th>
-                <th>Phone Number</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -27,9 +26,8 @@
                 <td>{{ user.id }}</td>
                 <td>{{ user.fName }}</td>
                 <td>{{ user.lName }}</td>
-                <td>{{ user.role }}</td>
+                <td>{{ user.userType }}</td>
                 <td>{{ user.email }}</td>
-                <td>{{ user.phone }}</td>
                 <td>
                     <!-- an edit button -->
                     <form action="/manageusers/" method="post" style="display:inline;">
