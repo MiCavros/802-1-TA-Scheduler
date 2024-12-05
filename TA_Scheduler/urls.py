@@ -34,7 +34,7 @@ urlpatterns = [
 
     path('manageusers/', manageUsers.as_view(), name='Manage Users'),
     path('createsection/', CreateSection.as_view(), name='Create Section'),
-    path('editaccount/', editAccount.as_view(), name='Edit Account'),
+    path('editaccount/', editAccount.as_view(), name='Edit User'),
     path('assignsections/', assignSections.as_view(), name='Assign Sections'),
     path('admineditcontactinfo/', adminEditContactInfo.as_view(), name='Admin Edit Contact Info'),
     path('delete-user/', views.delete_user, name='delete_user')

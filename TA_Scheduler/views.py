@@ -212,16 +212,32 @@ class manageUsers(View):
         userID = request.session["id"]
         m = User.objects.get(id=userID)
         if m.userType == "Admin":
-            return render(request, 'manageUsers.html', {"userType": m.userType})
+            Users = User.objects.all()
+
+            return render(request, 'manageUsers.html', {"userType": m.userType, "users": Users})
         else:
             return render(request, 'userNoAccess.html', {"userType": m.userType, "message": "User Cannot Access This Page"})
 
     def post(self, request):
-        return render(request, 'manageUsers.html')
+        editUser_id = request.POST.get("user")
+        request.session["editUserID"] = editUser_id
+        Users = User.objects.all()
 
+        if request.POST["action"] == "edit":
+            return redirect("/editaccount/")
+        else:
+            try:
+                user = User.objects.get(id=editUser_id)
+                user.delete()
+                return render(request, "manageUsers.html", {"message": "User deleted successfully", "users": Users})
+            except User.DoesNotExist:
+                return render(request, "manageUsers.html", {"message": "User does not exist", "users": Users})
 class editAccount(View):
+
     def get(self, request):
-        return render(request, 'editAccount.html')
+        editUserID = request.session["editUserID"]
+        editUser = User.objects.get(id=editUserID)
+        return render(request, 'editAccount.html', {"user" : editUser})
     def post(self, request):
         return render(request, 'editAccount.html')
     
@@ -239,7 +255,7 @@ class adminEditContactInfo(View):
 
 def delete_user(request):
     if request.method == 'POST':
-        user_id = request.POST.get('user_id')
+        user_id = request.POST.get('editUserID')
         try:
             user = User.objects.get(id=user_id)
             user.delete()

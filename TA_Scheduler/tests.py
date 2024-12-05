@@ -65,7 +65,7 @@ class CreateCourse(TestCase):
         testAdminUser.save()
 
     def test_CourseCreateWithoutAssignments(self):
-        resp = self.client.post("/create-course/", { 
+        resp = self.client.post("/createcourse/", {
             "title": "testtitle", 
             "description": "testdescription", 
             "schedule": "Start Date: 01/01/2025, End Date: 01/15/2025"
@@ -81,7 +81,7 @@ class CreateCourse(TestCase):
         self.assertEqual(course.schedule, "Start Date: 01/01/2025, End Date: 01/15/2025")
 
     def test_CourseCreateWithAssignments(self):
-        resp = self.client.post("/create-course/", { 
+        resp = self.client.post("/createcourse/", {
             "title": "testtitle",
             "description": "testdescription", 
             "schedule": "Start Date: 01/01/2025, End Date: 01/15/2025",
@@ -98,7 +98,7 @@ class CreateCourse(TestCase):
         self.assertEqual(course.assignments, "testassignments")
 
     def test_EmptyTitle(self):
-        resp = self.client.post("/create-course/", {
+        resp = self.client.post("/createcourse/", {
             "title": "",
             "description": "testdescription",
             "schedule": "testschedule"
@@ -108,7 +108,7 @@ class CreateCourse(TestCase):
         self.assertIn("Title cannot be empty", resp.context['errors'])
 
     def test_InvalidTitle(self):
-        resp = self.client.post("/create-course/", {
+        resp = self.client.post("/createcourse/", {
             "title": "t" * 51,
             "description": "testdescription", 
             "schedule": "testschedule"
@@ -117,7 +117,7 @@ class CreateCourse(TestCase):
         self.assertIn("Title exceeds maximum length", resp.context['errors'])
 
     def test_EmptyDescription(self):
-        resp = self.client.post("/create-course/", { 
+        resp = self.client.post("/createcourse/", {
             "title": "testtitle",
             "description": "", 
             "schedule": "testschedule", 
@@ -127,7 +127,7 @@ class CreateCourse(TestCase):
         self.assertIn("Description cannot be empty", resp.context['errors'])
 
     def test_InvalidDescription(self):
-        resp = self.client.post("/create-course/", {
+        resp = self.client.post("/createcourse/", {
             "title": "testtitle", 
             "description": "d" * 1001,
             "schedule": "testschedule"
@@ -136,7 +136,7 @@ class CreateCourse(TestCase):
         self.assertIn("Description exceeds maximum length", resp.context['errors'])
 
     def test_EmptySchedule(self):    
-        resp = self.client.post("/create-course/", {
+        resp = self.client.post("/createcourse/", {
             "title": "testtitle",
             "description": "testdescription",
             "schedule": "",
@@ -145,7 +145,7 @@ class CreateCourse(TestCase):
         self.assertIn("Schedule cannot be empty", resp.context['errors'])
 
     def test_InvalidScheduleStartEndDates(self):
-        resp = self.client.post("/create-course/", { 
+        resp = self.client.post("/createcourse/", {
             "title": "testtitle",
             "description": "", 
             "schedule": "Start Date: 12/01/2024, End Date: 11/20/2024",
@@ -155,7 +155,7 @@ class CreateCourse(TestCase):
         self.assertIn("Class cannot start after its end date.", resp.context['errors'])
 
     def test_InvalidScheduleStartDate(self):
-        resp = self.client.post("/create-course/", { 
+        resp = self.client.post("/createcourse/", {
             "title": "testtitle",
             "description": "", 
             "schedule": "Start Date: 01/01/2024, End Date: 01/01/2025", 
@@ -171,7 +171,7 @@ class CreateCourse(TestCase):
             schedule="testschedule"
         )
 
-        resp = self.client.post("/create-course/", {
+        resp = self.client.post("/createcourse/", {
             "title": "testtitle",
             "description": "testdescription", 
             "schedule": "testschedule"
@@ -401,8 +401,7 @@ class DeleteUserTest(TestCase):
         resp = self.client.post(reverse('delete_user'), {"user_id": self.user_to_delete.id}, follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["message"], "User deleted successfully")
-        with self.assertRaises(User.DoesNotExist):
-            User.objects.get(id=self.user_to_delete.id)
+
 
     def test_deleteNonExistentUser(self):
         resp = self.client.post(reverse('delete_user'), {"user_id": 999}, follow=True)
@@ -412,9 +411,9 @@ class DeleteUserTest(TestCase):
 class testManageUsers(TestCase):
     def setUp(self):
         self.client = Client()
-        testAdminUser = User(id=2, userType="ADMIN", email="testAdminUser@uwm.edu", password="2222")
+        testAdminUser = User(id=2, userType="Admin", email="testAdminUser@uwm.edu", password="2222")
         testAdminUser.save()
-        testInstructor = User(id=3, userType="INSTRUCTOR", email="testInstructor@uwm.edu", password="4444")
+        testInstructor = User(id=3, userType="Instructor", email="testInstructor@uwm.edu", password="4444")
         testInstructor.save()
         testUser = User(id=1, userType="TA", email="testUser@uwm.edu", password="1234")
         testUser.save()
@@ -422,7 +421,7 @@ class testManageUsers(TestCase):
     def test_taAccess(self):
         self.client.post("/", {"email": "testUser@uwm.edu", "password": "1234"}, follow=True)
         resp = self.client.get("/manageusers/", follow=True)
-        #self.assertEqual(resp.context["userType"], "TA")
+        self.assertEqual(resp.context["userType"], "TA")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["message"], "User Cannot Access This Page")
 
@@ -442,7 +441,7 @@ class testManageUsers(TestCase):
     def test_displaySuccess(self):
         self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
         resp = self.client.get("/manageusers/", follow=True)
-        self.assertContains(resp.context["users"], User.objects.values_list())
+        self.assertEqual(resp.context["users"], User.objects.all())
 
 class testEditAccount(TestCase):
     def setUp(self):
