@@ -5,6 +5,7 @@ from django.db.models.fields import return_None
 from django.db.utils import IntegrityError
 from datetime import datetime
 from django.shortcuts import render, redirect
+from django.template.defaultfilters import length
 from django.views import View
 from .models import User, userPublicInfo, userPrivateInfo, Class, Section
 
@@ -237,9 +238,40 @@ class editAccount(View):
     def get(self, request):
         editUserID = request.session["editUserID"]
         editUser = User.objects.get(id=editUserID)
-        return render(request, 'editAccount.html', {"user" : editUser})
+        userID = request.session["id"]
+        m = User.objects.get(id=userID)
+        if m.userType == "Admin":
+
+            return render(request, 'editAccount.html', {"userType": m.userType, "user": editUser})
+        else:
+            return render(request, 'userNoAccess.html',{"userType": m.userType, "message": "User Cannot Access This Page"})
+
     def post(self, request):
-        return render(request, 'editAccount.html')
+        editUserID = request.session["editUserID"]
+        editUser = User.objects.get(id=editUserID)
+        first_name = request.POST.get("first_name")
+        last_name = request.POST.get("last_name")
+        email = request.POST.get("email")
+        phone = request.POST.get("phone")
+        password = request.POST.get("password")
+        confirm_password = request.POST.get("confirm_password")
+
+        if not email:
+            return render(request, 'editAccount.html', {"message": "Email is a required field"})
+        if "@uwm.edu" not in email:
+            return render(request, 'editAccount.html', {"message": "Must use valid UWM.edu email"})
+        if password:
+            if password != confirm_password:
+                return render(request, 'editAccount.html', {"message": "Passwords Don't match"})
+
+
+        editUser.fName = first_name
+        editUser.lName = last_name
+        editUser.email = email
+        editUser.password = password
+        editUser.save()
+
+        return render(request, 'editAccount.html', {"message": "Account Edited Successfully", "user" : editUser})
     
 class assignSections(View):
     def get(self, request):

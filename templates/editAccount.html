@@ -6,24 +6,20 @@
 </head>
 <body>
     <h1>Edit Account</h1>
-    <form action="/editAccount/" method="post">
+    <form action="/editaccount/" method="post">
         {% csrf_token %}
         <table>
             <tr>
                 <td>First Name:</td>
-                <td><input type="text" name="first_name" value="{{ user.first_name }}"></td>
+                <td><input type="text" name="first_name" value="{{ user.fName }}"></td>
             </tr>
             <tr>
                 <td>Last Name:</td>
-                <td><input type="text" name="last_name" value="{{ user.last_name }}"></td>
+                <td><input type="text" name="last_name" value="{{ user.lName }}"></td>
             </tr>
             <tr>
                 <td>Email (required):</td>
                 <td><input type="email" name="email" value="{{ user.email }}" required></td>
-            </tr>
-            <tr>
-                <td>Phone Number:</td>
-                <td><input type="tel" name="phone" value="{{ user.phone }}"></td>
             </tr>
             <tr>
                 <td>Password:</td>

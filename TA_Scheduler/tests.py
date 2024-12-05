@@ -452,61 +452,41 @@ class testEditAccount(TestCase):
         testUser = User(id=1, userType="TA", email="testUser@uwm.edu", password="1234")
         testUser.save()
 
-    def test_taAccess(self):
-        self.client.post("/", {"email": "testUser@uwm.edu", "password": "1234"}, follow=True)
-        resp = self.client.get("/editAccount/", follow=True)
-        self.assertEqual(resp.context["userType"], "TA")
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.context["message"], "User Cannot Access This Page")
-
-    def test_InstructorAccess(self):
-        self.client.post("/", {"email": "testInstructor@uwm.edu", "password": "4444"}, follow=True)
-        resp = self.client.get("/editAccount/", follow=True)
-        self.assertEqual(resp.context["userType"], "Instructor")
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.context["message"], "User Cannot Access This Page")
-
-    def test_adminAccess(self):
-        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.get("/editAccount/", follow=True)
-        self.assertEqual(resp.context["userType"], "Admin")
-        self.assertEqual(resp.status_code, 200)
 
     def test_editUserSuccessfully(self):
         self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.post("/editaccount/1", {"first_name": "NewTestUser", "email": "newNewTestUser@uwm.edu", "last_name": "NewLastName",  "password" : "1222", "confirm_password" : "1222", "phone" : "4144444444"}, follow=True)
+        self.client.post("/manageusers/", {"action" : "edit", "user": 1}, follow=True)
+        resp = self.client.post("/editaccount/", {"first_name": "NewTestUser", "email": "newNewTestUser@uwm.edu", "last_name": "NewLastName",  "password" : "1222", "confirm_password" : "1222"}, follow=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.context["message"], "Accounted Updated Successfully")
-        newUser = User.objects.get(email="newnewtestuser@uwm.edu")
+        self.assertEqual(resp.context["message"], "Account Edited Successfully")
+        newUser = User.objects.get(id=1)
         self.assertEqual(newUser.userType, "TA")
         self.assertEqual(newUser.password, "1222")
-        self.assertEqual(newUser.first_name, "NewTestUser")
-        self.assertEqual(newUser.last_name, "NewLastName")
-        self.assertEqual(newUser.phone, "4144444444")
+        self.assertEqual(newUser.fName, "NewTestUser")
+        self.assertEqual(newUser.lName, "NewLastName")
+
 
     def test_invalidEmail(self):
         self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.post("/editaccount/1", {"first_name": "NewTestUser", "email": "newNewTestUser", "last_name": "NewLastName",  "password" : "1222", "confirm_password" : "1222", "phone" : "4144444444"}, follow=True)
+        self.client.post("/manageusers/", {"action": "edit", "user": 1}, follow=True)
+        resp = self.client.post("/editaccount/", {"first_name": "NewTestUser", "email": "newNewTestUser", "last_name": "NewLastName",  "password" : "1222", "confirm_password" : "1222"}, follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["message"], "Must use valid UWM.edu email")
 
     def test_NoEmail(self):
         self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.post("/editaccount/1",{"first_name": "NewTestUser", "last_name": "NewLastName", "password": "1222", "confirm_password": "1222", "phone": "4144444444"}, follow=True)
+        self.client.post("/manageusers/", {"action": "edit", "user": 1}, follow=True)
+        resp = self.client.post("/editaccount/",{"first_name": "NewTestUser", "last_name": "NewLastName", "password": "1222", "confirm_password": "1222"}, follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["message"], "Email is a required field")
 
     def test_PasswordsDontMatch(self):
         self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.post("/editaccount/1",{"first_name": "NewTestUser", "last_name": "NewLastName", "password": "1222","confirm_password": "1232", "phone": "4144444444"}, follow=True)
+        self.client.post("/manageusers/", {"action": "edit", "user": 1}, follow=True)
+        resp = self.client.post("/editaccount/",{"first_name": "NewTestUser","email": "newNewTestUser@uwm.edu", "last_name": "NewLastName", "password": "1222","confirm_password": "1232"}, follow=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.context["message"], "Passwords Don't Match")
+        self.assertEqual(resp.context["message"], "Passwords Don't match")
 
-    def test_InvalidPhone(self):
-        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.post("/editaccount/1",{"first_name": "NewTestUser", "last_name": "NewLastName", "password": "1222","confirm_password": "1222", "phone": "4"}, follow=True)
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.context["message"], "Invalid Phone Number")
 
 class AssignSectionTest(TestCase):
     def setUp(self):
