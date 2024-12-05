@@ -1,6 +1,10 @@
+import unittest
+
 from django.test import TestCase, Client
 from django.urls import reverse
 from .models import User, userPublicInfo, userPrivateInfo, Class, Section
+
+
 
 class LoginTest(TestCase):
     def setUp(self):

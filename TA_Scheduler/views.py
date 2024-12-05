@@ -1,5 +1,6 @@
 import random
 from operator import truediv
+from sched import scheduler
 
 from django.db.models.fields import return_None
 from django.db.utils import IntegrityError
@@ -83,6 +84,8 @@ class CreateUser(View):
 
         if not noUser:
             return render(request, "createUser.html", {"message": "There is already a user with that email"})
+
+
 
         newUser = User.objects.create(fName=request.POST['fName'].lower(), lName=request.POST['lName'].lower(), MidInit=request.POST['midI'].lower(), id=newID, userType=request.POST['role'], email=request.POST['email'].lower(), password=request.POST['password'].lower())
         return render(request, 'createUser.html', {"message" : "User Created Successfully", "userType": m.userType})
@@ -183,21 +186,14 @@ class CreateSection(View):
         if not section_name.isalnum():
             return render(request, "createSection.html", {"message": "Section Name is Invalid"})
 
-        instructor = User.objects.get(id=instructor_id)
-        course = Class.objects.get(id=course_id)
-        Section.objects.create(
-            sectionId=Section.objects.count() + 1,
-            classId=course,
-            TA=instructor,
-            schedule=schedule,
-            max_capacity=int(max_capacity)
-        )
+        createSection(request, section_name, instructor_id, schedule, course_id, max_capacity)
+
 
         return render(request, "createSection.html", {"message": "Section Created Successfully"})
 
 class AssignSection(View):
     def get(self, request):
-        return render(request, 'assignSections.html')
+        return render(request, 'assignSections.html', )
     def post(self, request):
         return render(request, "assignSections.html")
 
@@ -210,8 +206,7 @@ class editContactInfo(View):
 
 class manageUsers(View):
     def get(self, request):
-        userID = request.session["id"]
-        m = User.objects.get(id=userID)
+        m = retrieveSessionID(request)
         if m.userType == "Admin":
             Users = User.objects.all()
 
@@ -227,19 +222,13 @@ class manageUsers(View):
         if request.POST["action"] == "edit":
             return redirect("/editaccount/")
         else:
-            try:
-                user = User.objects.get(id=editUser_id)
-                user.delete()
-                return render(request, "manageUsers.html", {"message": "User deleted successfully", "users": Users})
-            except User.DoesNotExist:
-                return render(request, "manageUsers.html", {"message": "User does not exist", "users": Users})
+            print(editUser_id)
+            deleteUser(request, editUser_id, Users)
 class editAccount(View):
 
     def get(self, request):
-        editUserID = request.session["editUserID"]
-        editUser = User.objects.get(id=editUserID)
-        userID = request.session["id"]
-        m = User.objects.get(id=userID)
+        editUser = retrieveEditUserID(request)
+        m = retrieveSessionID(request)
         if m.userType == "Admin":
 
             return render(request, 'editAccount.html', {"userType": m.userType, "user": editUser})
@@ -247,12 +236,10 @@ class editAccount(View):
             return render(request, 'userNoAccess.html',{"userType": m.userType, "message": "User Cannot Access This Page"})
 
     def post(self, request):
-        editUserID = request.session["editUserID"]
-        editUser = User.objects.get(id=editUserID)
+        User = retrieveEditUserID(request)
         first_name = request.POST.get("first_name")
         last_name = request.POST.get("last_name")
         email = request.POST.get("email")
-        phone = request.POST.get("phone")
         password = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
 
@@ -265,11 +252,8 @@ class editAccount(View):
                 return render(request, 'editAccount.html', {"message": "Passwords Don't match"})
 
 
-        editUser.fName = first_name
-        editUser.lName = last_name
-        editUser.email = email
-        editUser.password = password
-        editUser.save()
+        editUser(User, first_name, last_name, email, password)
+
 
         return render(request, 'editAccount.html', {"message": "Account Edited Successfully", "user" : editUser})
     
@@ -285,13 +269,39 @@ class adminEditContactInfo(View):
     def post(self, request):
         return render(request, 'adminEditContactInfo.html')
 
-def delete_user(request):
-    if request.method == 'POST':
-        user_id = request.POST.get('editUserID')
-        try:
-            user = User.objects.get(id=user_id)
-            user.delete()
-            return render(request, "manageUsers.html", {"message": "User deleted successfully"})
-        except User.DoesNotExist:
-            return render(request, "manageUsers.html", {"message": "User does not exist"})
-    return render(request, "manageUsers.html", {"message": "Invalid request method"})
+def deleteUser(request, d, Users):
+    try:
+        user = User.objects.get(id=d)
+        user.delete()
+        return render(request, "manageUsers.html", {"message": "User deleted successfully", "users": Users})
+    except User.DoesNotExist:
+        return render(request, "manageUsers.html", {"message": "User does not exist", "users": Users})
+
+def retrieveSessionID(request):
+    userID = request.session["id"]
+    m = User.objects.get(id=userID)
+    return m
+
+def retrieveEditUserID(request):
+    editUserID = request.session["editUserID"]
+    editUser = User.objects.get(id=editUserID)
+    return editUser
+
+def editUser(user, first_name, last_name, email, password):
+    j = User.objects.get(id=user.id)
+    j.fName = first_name
+    j.lName = last_name
+    j.email = email
+    j.password = password
+    j.save()
+
+def createSection(request, section_name, instructor_id, schedule, course_id, max_capacity):
+    instructor = User.objects.get(id=instructor_id)
+    course = Class.objects.get(id=course_id)
+    Section.objects.create(
+        sectionId=Section.objects.count() + 1,
+        classId=course,
+        TA=instructor,
+        schedule=schedule,
+        max_capacity=int(max_capacity)
+    )
