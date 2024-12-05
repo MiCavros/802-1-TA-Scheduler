@@ -2,7 +2,7 @@ import unittest
 
 from django.test import TestCase, Client
 from django.urls import reverse
-from .models import User, userPublicInfo, userPrivateInfo, Class, Section
+from TA_Scheduler.models import User, userPublicInfo, userPrivateInfo, Class, Section
 
 
 
