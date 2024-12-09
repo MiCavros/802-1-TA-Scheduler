@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Assignments - TA Scheduler</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #003366;
+            color: #ffffff;
+        }
+        .card {
+            margin-top: 50px;
+            background-color: #ffc403;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #003366;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #002244;
+        }
+        .form-control {
+            border-radius: 0;
+        }
+        .header-logo {
+            max-width: 150px;
+            margin-bottom: 20px;
+        }
+        .alert {
+            color: #000000;
+        }
+        .assignment-text {
+            color: #004080;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+        .list-group-item {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="text-center">
+            <h1 class="mt-5">My Assignments</h1>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                {% if assignments %}
+                    <ul class="list-group">
+                        {% for assignment in assignments %}
+                            <li class="list-group-item">
+                                <h5 class="assignment-text">{{ assignment.classId.title }}</h5>
+                                <p class="assignment-text">Section: {{ assignment.section_name }}</p>
+                                <p class="assignment-text">Schedule: {{ assignment.schedule }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="alert alert-info mt-3 text-center">
+                        No assignments found.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <a href="/home/" class="btn btn-light">Home</a>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

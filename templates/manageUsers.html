@@ -1,66 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
     <meta charset="UTF-8">
-    <title> Manage Users </title>
+    <title>Manage Users - TA Scheduler</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #003366;
+            color: #ffffff;
+        }
+        .card {
+            margin-top: 50px;
+            background-color: #ffc403;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #003366;
+            border: none;
+            margin-bottom: 10px;
+        }
+        .btn-primary:hover {
+            background-color: #002244;
+        }
+        .form-control {
+            border-radius: 0;
+        }
+        .header-logo {
+            max-width: 150px;
+            margin-bottom: 20px;
+        }
+        .alert {
+            color: #000000;
+        }
+        .table thead th {
+            background-color: #003366;
+            color: #ffffff;
+        }
+        .table tbody tr:hover {
+            background-color: #ffd54f;
+        }
+    </style>
 </head>
 <body>
-    <h1>Manage User Accounts </h1>
+    <div class="container">
+        <div class="text-center">
+            <h1 class="mt-5 mb-4">Manage User Accounts</h1>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <!-- Table for user account management -->
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Role</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.fName }}</td>
+                            <td>{{ user.lName }}</td>
+                            <td>{{ user.userType }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                <!-- Edit button -->
+                                <form action="/manageusers/" method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user" value={{ user.id }} />
+                                    <input type="hidden" name="action" value="edit" />
+                                    <button type="submit" class="btn btn-primary btn-sm">Edit</button>
+                                </form>
+                                <!-- Delete button -->
+                                <form action="/manageusers/" method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user" value={{ user.id }} />
+                                    <input type="hidden" name="action" value="delete" />
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?');">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No users found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
 
-    <!--table for user account management-->
-    <table border="1" cellpadding="10">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Role</th>
-                <th>Email</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for user in users %}
-            <tr>
-                <td>{{ user.id }}</td>
-                <td>{{ user.fName }}</td>
-                <td>{{ user.lName }}</td>
-                <td>{{ user.userType }}</td>
-                <td>{{ user.email }}</td>
-                <td>
-                    <!-- an edit button -->
-                    <form action="/manageusers/" method="post" style="display:inline;">
-                        {% csrf_token %}
-                        <input type="hidden" name="user" value={{ user.id }} />
-                        <input type="hidden" name="action" value="edit" />
-                        <button  type="submit">Edit</button>
+                <!-- button to add a new user -->
+                <div class="text-center mt-4">
+                    <form action="/createuser/" method="get">
+                        <button type="submit" class="btn btn-primary">Create New User</button>
                     </form>
-                    <!-- delete button -->
-                    <form action="/manageusers/" method="post" style="display:inline;">
-                        {% csrf_token %}
-                        <input type="hidden" name="user" value={{ user.id }} />
-                        <input type="hidden" name="action" value="delete" />
-                        <button type="submit" onclick="return confirm('Are you sure you want to delete this user?');">Delete</button>
-                    </form>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6">No users found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    <a href="/home/" class="btn btn-light mt-3">Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <br>
-
-
-
-    <!-- finally a button to add a new user -->
-    <form action="/createuser/" method="get">
-        <button type="submit">Create New User</button>
-    </form>
-    <a href="/home/">Home</a>
+    <!-- Include scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

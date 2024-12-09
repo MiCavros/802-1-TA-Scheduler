@@ -1,15 +1,9 @@
 import random
-from idlelib.pyshell import UserInputTaggingDelegator
-from operator import truediv
-from sched import scheduler
-
-from django.db.models.fields import return_None
-from django.db.utils import IntegrityError
 from datetime import datetime
 from django.shortcuts import render, redirect
-from django.template.defaultfilters import length
 from django.views import View
-from .models import User, userPublicInfo, userPrivateInfo, Class, Section
+from django.db.models import Q
+from .models import User, Class, Section
 
 class Login(View):
     def get(self, request):
@@ -38,153 +32,239 @@ class Home(View):
     def get(self, request):
         userID = request.session["id"]
         m = User.objects.get(id=userID)
-        if m.userType == "Admin":
-            return render(request, 'adminHome.html', {"userType": m.userType, "name":  m.fName})
-        else:
-            return render(request, 'home.html', {"userType": m.userType, "name":  m.fName})
+        return render(request, 'home.html', {"user": m})
 
 class CreateUser(View):
     def get(self, request):
-        userID = request.session["id"]
-        m = User.objects.get(id=userID)
-        if m.userType != "Admin":
-            return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page", "userType": m.userType})
+        m = retrieveSessionID(request)
+        if m.userType == "Admin":
+            userID = request.session["id"]
+            m = User.objects.get(id=userID)
+            if m.userType != "Admin":
+                return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page", "userType": m.userType})
+            else:
+                return render(request, 'createUser.html', {"message": "", "userType": m.userType})
         else:
-            return render(request, 'createUser.html', {"message": "", "userType": m.userType})
+            return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
     def post(self, request):
-        #Code the post please
-        userID = request.session["id"]
-        m = User.objects.get(id=userID)
-        noUser = False
+        m = retrieveSessionID(request)
+        if m.userType == "Admin":
+            userID = request.session["id"]
+            m = User.objects.get(id=userID)
+            noUser = False
 
-        if request.POST['email'] == "":
-            return render(request, "createUser.html", {"message": "Email is a required field", "userType": m.userType})
-        if request.POST['password'] == "":
-            return render(request, "createUser.html",
-                          {"message": "Password is a required field", "userType": m.userType})
-        if request.POST['role'] == "":
-            return render(request, "createUser.html",
-                          {"message": "Role is a required field", "userType": m.userType})
-        if "@uwm.edu" not in request.POST['email']:
-            return render(request, "createUser.html", {"message": "Must use valid UWM.edu email"})
-        try:
-            user = User.objects.get(request.POST['email'].lower())
-        except:
-            noUser = True
-        if not noUser:
-            return render(request, "createUser.html", {"message": "There is already a user with that email"})
-        newID = generateUserID(request.POST['email'].lower)
+            if request.POST['email'] == "":
+                return render(request, "createUser.html", {"message": "Email is a required field", "userType": m.userType})
+            if request.POST['password'] == "":
+                return render(request, "createUser.html",
+                            {"message": "Password is a required field", "userType": m.userType})
+            if request.POST['role'] == "":
+                return render(request, "createUser.html",
+                            {"message": "Role is a required field", "userType": m.userType})
+            if "@uwm.edu" not in request.POST['email']:
+                return render(request, "createUser.html", {"message": "Must use valid UWM.edu email"})
+            try:
+                user = User.objects.get(request.POST['email'].lower())
+            except:
+                noUser = True
+            if not noUser:
+                return render(request, "createUser.html", {"message": "There is already a user with that email"})
+            newID = generateUserID(request.POST['email'].lower)
 
-        addUser(newID, request.POST['fName'].lower(), request.POST['lName'].lower(),request.POST['midI'].lower, request.POST['role'], request.POST['email'].lower(), request.POST['password'])
-        #newUser = User.objects.create(fName=request.POST['fName'].lower(), lName=request.POST['lName'].lower(), MidInit=request.POST['midI'].lower(), id=newID, userType=request.POST['role'], email=request.POST['email'].lower(), password=request.POST['password'].lower())
-        return render(request, 'createUser.html', {"message" : "User Created Successfully", "userType": m.userType})
+            addUser(newID, request.POST['fName'].lower(), request.POST['lName'].lower(),request.POST['midI'].lower, request.POST['role'], request.POST['email'].lower(), request.POST['password'])
+            #newUser = User.objects.create(fName=request.POST['fName'].lower(), lName=request.POST['lName'].lower(), MidInit=request.POST['midI'].lower(), id=newID, userType=request.POST['role'], email=request.POST['email'].lower(), password=request.POST['password'].lower())
+            return render(request, 'createUser.html', {"message" : "User Created Successfully", "userType": m.userType})
+        else:
+            return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
 
 class CreateCourse(View):
     def get(self, request):
-        return render(request, 'createCourse.html')
+        m = retrieveSessionID(request)
+        if m.userType in ["Admin", "Instructor"]:
+            instructors = User.objects.filter(userType='Instructor')
+            return render(request, 'createCourse.html', {'instructors': instructors})
+        else:
+            return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
 
     def post(self, request):
-        title = request.POST.get('title', '').strip()
-        description = request.POST.get('description', '').strip()
-        schedule = request.POST.get('schedule', '').strip()
-        assignments = request.POST.get('assignments', '').strip()
+        m = retrieveSessionID(request)
+        if m.userType in ["Admin", "Instructor"]:
+            title = request.POST.get('title', '').strip()
+            description = request.POST.get('description', '').strip()
+            start_date = request.POST.get('start_date')
+            end_date = request.POST.get('end_date')
+            start_time = request.POST.get('start_time')
+            end_time = request.POST.get('end_time')
+            days = request.POST.getlist('days[]')
+            assignments = request.POST.get('assignments', '').strip()
+            instructor_id = request.POST.get('instructor_id')
+            location = request.POST.get('location', '').strip()
 
-        errors = []
+            errors = []
+            instructors = User.objects.filter(userType='Instructor')
 
-        # Validation for title
-        if not title:
-            errors.append("Title cannot be empty")
-        elif len(title) > 50:
-            errors.append("Title exceeds maximum length")
+            if not title or not description or not instructor_id:
+                errors.append("Title, description and instructor are required")
 
-        # Validation for description
-        if not description:
-            errors.append("Description cannot be empty")
-        elif len(description) > 1000:
-            errors.append("Description exceeds maximum length")
+            if not all([start_date, end_date, start_time, end_time, days]):
+                errors.append("All schedule fields are required")
+            else:
+                try:
+                    start_date_obj = datetime.strptime(start_date, "%Y-%m-%d").date()
+                    end_date_obj = datetime.strptime(end_date, "%Y-%m-%d").date()
+                    today = datetime.now().date()
 
-        # Validation for schedule
-        if not schedule:
-            errors.append("Schedule cannot be empty")
-        else:
-            # Validate schedule format
-            try:
-                start_date_str = schedule.split("Start Date: ")[1].split(",")[0].strip()
-                end_date_str = schedule.split("End Date: ")[1].strip()
+                    if start_date_obj > end_date_obj:
+                        errors.append("Class cannot start after its end date")
+                    if start_date_obj < today:
+                        errors.append("Class cannot start in the past")
 
-                start_date = datetime.strptime(start_date_str, "%m/%d/%Y")
-                end_date = datetime.strptime(end_date_str, "%m/%d/%Y")
+                    schedule = f"Days: {', '.join(days)}; Time: {start_time}-{end_time}; Start Date: {start_date}; End Date: {end_date}"
+                except ValueError:
+                    errors.append("Invalid date format")
 
-                # Check if start date is after end date
-                if start_date > end_date:
-                    errors.append("Class cannot start after its end date.")
-                # Check if start date is in the past
-                if start_date < datetime.now():
-                    errors.append("Class cannot start in the past.")
-            except (IndexError, ValueError):
-                errors.append("Schedule format is incorrect. Use 'Start Date: MM/DD/YYYY, End Date: MM/DD/YYYY'.")
+            if Class.objects.filter(title=title).exists():
+                errors.append("Course already exists")
 
-        # Check for duplicate course
-        if Class.objects.filter(title=title).exists():
-            errors.append("Course already exists")
+            if errors:
+                context = {
+                    'errors': errors,
+                    'title': title,
+                    'description': description,
+                    'assignments': assignments,
+                    'instructors': instructors,
+                    'start_date': start_date,
+                    'end_date': end_date,
+                    'start_time': start_time,
+                    'end_time': end_time,
+                    'days': days,
+                    'location': location
+                }
+                return render(request, 'createCourse.html', context)
 
-        # If there are errors, return to the same page with errors
-        if errors:
+            new_course = Class.objects.create(
+                title=title,
+                description=description,
+                schedule=schedule,
+                assignments=assignments,
+                location=location
+            )
+
             return render(request, 'createCourse.html', {
-                'errors': errors,
-                'title': title,
-                'description': description,
-                'schedule': schedule,
-                'assignments': assignments
+                'message': "Course created successfully!",
+                'instructors': instructors
             })
 
-        # If no errors, create the course
-        new_course = Class.objects.create(
-            title=title,
-            description=description,
-            schedule=schedule,
-            assignments=assignments
-        )
-
-        return render(request, 'createCourse.html', {
-            'message': "Course created successfully!",
-            'title': new_course.title,
-            'description': new_course.description,
-            'schedule': new_course.schedule,
-            'assignments': new_course.assignments
-        })
+        return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
 
 class CreateSection(View):
     def get(self, request):
-        return render(request, 'createSection.html')
+        courses = Class.objects.all()
+        instructors = User.objects.filter(userType='Instructor')
+        return render(request, 'createSection.html', {
+            'courses': courses,
+            'instructors': instructors
+        })
+
     def post(self, request):
         section_name = request.POST.get("section_name")
         instructor_id = request.POST.get("instructor_id")
-        schedule = request.POST.get("schedule")
         course_id = request.POST.get("course_id")
         max_capacity = request.POST.get("max_capacity")
+        
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        start_time = request.POST.get('start_time')
+        end_time = request.POST.get('end_time')
+        days = request.POST.getlist('days[]')
 
-        if not section_name:
-            return render(request, "createSection.html", {"message": "Name Field is Required"})
-        if not instructor_id:
-            return render(request, "createSection.html", {"message": "Instructor Field is Required"})
-        if not course_id:
-            return render(request, "createSection.html", {"message": "Course Field is Required"})
-        if not max_capacity or not max_capacity.isdigit():
-            return render(request, "createSection.html", {"message": "Capacity Field is Required"})
+        errors = []
+        context = {
+            'courses': Class.objects.all(),
+            'instructors': User.objects.filter(userType='Instructor')
+        }
+
+        if not all([section_name, instructor_id, course_id, max_capacity]):
+            errors.append("All fields are required")
         if not section_name.isalnum():
-            return render(request, "createSection.html", {"message": "Section Name is Invalid"})
+            errors.append("Section Name is Invalid")
+        if max_capacity and not max_capacity.isdigit():
+            errors.append("Capacity must be a number")
+
+        if not all([start_date, end_date, start_time, end_time, days]):
+            errors.append("All schedule fields are required")
+        else:
+            try:
+                start_date_obj = datetime.strptime(start_date, "%Y-%m-%d").date()
+                end_date_obj = datetime.strptime(end_date, "%Y-%m-%d").date()
+                today = datetime.now().date()
+
+                if start_date_obj > end_date_obj:
+                    errors.append("Section cannot start after its end date")
+                if start_date_obj < today:
+                    errors.append("Section cannot start in the past")
+
+                schedule = f"Days: {', '.join(days)}; Time: {start_time}-{end_time}; Start Date: {start_date}; End Date: {end_date}"
+            except ValueError:
+                errors.append("Invalid date format")
+
+        if errors:
+            context['message'] = "\n".join(errors)
+            return render(request, "createSection.html", context)
 
         createSection(request, section_name, instructor_id, schedule, course_id, max_capacity)
-
-
-        return render(request, "createSection.html", {"message": "Section Created Successfully"})
+        context['message'] = "Section Created Successfully"
+        return render(request, "createSection.html", context)
 
 class AssignSection(View):
     def get(self, request):
-        return render(request, 'assignSections.html', )
+        m = retrieveSessionID(request)
+        if m.userType in ["Admin", "Instructor"]:
+            context = {
+                'courses': Class.objects.all(),
+                'instructors': User.objects.filter(userType='Instructor'),
+                'tas': User.objects.filter(userType='TA'),
+                'sections': Section.objects.all(),
+                'message': request.GET.get('message', '')
+            }
+            return render(request, 'assignSections.html', context)
+        return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
+
     def post(self, request):
-        return render(request, "assignSections.html")
+        m = retrieveSessionID(request)
+        if m.userType in ["Admin", "Instructor"]:
+            ta_id = request.POST.get("ta_id")
+            section_id = request.POST.get("section_id")
+            try:
+                section = Section.objects.get(sectionId=section_id)
+                ta = User.objects.get(id=ta_id)
+                section.TA = ta
+                section.save()
+                context = {
+                    'courses': Class.objects.all(),
+                    'instructors': User.objects.filter(userType='Instructor'),
+                    'tas': User.objects.filter(userType='TA'),
+                    'sections': Section.objects.all(),
+                    'message': "TA successfully assigned to the section."
+                }
+            except Section.DoesNotExist:
+                context = {
+                    'courses': Class.objects.all(),
+                    'instructors': User.objects.filter(userType='Instructor'),
+                    'tas': User.objects.filter(userType='TA'),
+                    'sections': Section.objects.all(),
+                    'message': "Section does not exist."
+                }
+            except User.DoesNotExist:
+                context = {
+                    'courses': Class.objects.all(),
+                    'instructors': User.objects.filter(userType='Instructor'),
+                    'tas': User.objects.filter(userType='TA'),
+                    'sections': Section.objects.all(),
+                    'message': "TA does not exist."
+                }
+            return render(request, 'assignSections.html', context)
+        return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
 
 class editContactInfo(View):
     def get(self, request):
@@ -204,21 +284,24 @@ class manageUsers(View):
             return render(request, 'userNoAccess.html', {"userType": m.userType, "message": "User Cannot Access This Page"})
 
     def post(self, request):
-        editUser_id = request.POST.get("user")
-        request.session["editUserID"] = editUser_id
-        Users = User.objects.all()
+        m = retrieveSessionID(request)
+        if m.userType == "Admin":
+            editUser_id = request.POST.get("user")
+            request.session["editUserID"] = editUser_id
+            Users = User.objects.all()
 
-        if request.POST["action"] == "edit":
-            return redirect("/editaccount/")
+            if request.POST["action"] == "edit":
+                return redirect("/editaccount/")
+            else:
+                print(editUser_id)
+                try:
+                    user = User.objects.get(id=editUser_id)
+                    user.delete()
+                    return render(request, "manageUsers.html", {"message": "User deleted successfully", "users": Users})
+                except User.DoesNotExist:
+                    return render(request, "manageUsers.html", {"message": "User does not exist", "users": Users})
         else:
-            print(editUser_id)
-            try:
-                user = User.objects.get(id=editUser_id)
-                user.delete()
-                return render(request, "manageUsers.html", {"message": "User deleted successfully", "users": Users})
-            except User.DoesNotExist:
-                return render(request, "manageUsers.html", {"message": "User does not exist", "users": Users})
-
+            return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
 
 class editAccount(View):
 
@@ -251,17 +334,42 @@ class editAccount(View):
 
         return render(request, 'editAccount.html', {"message": "Account Edited Successfully", "user" : editUser})
     
-class assignSections(View):
-    def get(self, request):
-        return render(request, 'assignSections.html')
-    def post(self, request):
-        return render(request, 'assignSections.html')
     
-class adminEditContactInfo(View):
-    def get(self, request):
-        return render(request, 'adminEditContactInfo.html')
+class UpdatePassword(View):
     def post(self, request):
-        return render(request, 'adminEditContactInfo.html')
+        user = retrieveSessionID(request)
+        current_password = request.POST.get("current_password")
+        new_password = request.POST.get("new_password")
+        confirm_new_password = request.POST.get("confirm_new_password")
+
+        if user.password != current_password:
+            return render(request, 'editAccount.html', {"message": "Current password is incorrect", "user": user})
+        if new_password != confirm_new_password:
+            return render(request, 'editAccount.html', {"message": "New passwords do not match", "user": user})
+
+        user.password = new_password
+        user.save()
+        return render(request, 'editAccount.html', {"message": "Password updated successfully", "user": user})
+
+class TaViewAssignmentsPage(View):
+    def get(self, request):
+        m = retrieveSessionID(request)
+        if m.userType == "TA":
+            assignments = Section.objects.filter(TA=m)
+            return render(request, 'viewAssignments.html', {"assignments": assignments})
+        else:
+            return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
+
+class ReadPublicContactInfoPage(View):
+    def get(self, request):
+        search_query = request.GET.get('search', '')
+        if search_query:
+            users = User.objects.filter(
+                Q(fName__icontains=search_query) | Q(lName__icontains=search_query) | Q(email__icontains=search_query)
+            )
+        else:
+            users = User.objects.all()
+        return render(request, 'readPublicContactInfo.html', {'users': users})
 
 def deleteUser(request, d, Users):
     try:
@@ -280,7 +388,7 @@ def retrieveEditUserID(request):
 
     try:
         editUserID = request.session["editUserID"]
-        editUser = User.objects.get(id=editUserID)
+        editUser = User.objects.get(id(editUserID))
     except:
         editUser = User.objects.get(id=request.session['id'])
     return editUser
@@ -301,11 +409,13 @@ def createSection(request, section_name, instructor_id, schedule, course_id, max
     course = Class.objects.get(id=course_id)
     Section.objects.create(
         sectionId=Section.objects.count() + 1,
+        section_name=section_name,
         classId=course,
         TA=instructor,
         schedule=schedule,
         max_capacity=int(max_capacity)
     )
+
 def generateUserID(email):
     idInUse = True
 

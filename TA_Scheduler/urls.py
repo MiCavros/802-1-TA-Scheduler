@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path
 
 from TA_Scheduler.views import Login, Home, CreateUser, CreateCourse, manageUsers, CreateSection, \
-    editContactInfo, editAccount, assignSections, adminEditContactInfo
+    editContactInfo, editAccount, AssignSection, UpdatePassword, TaViewAssignmentsPage, ReadPublicContactInfoPage
 from . import views
 
 urlpatterns = [
@@ -31,10 +31,11 @@ urlpatterns = [
     path('createuser/', CreateUser.as_view(), name='Create User'),
     path('createcourse/', CreateCourse.as_view(), name='Create Course'),
     path('editcontactinfo/', editContactInfo.as_view(), name='Edit Contact Info'),
-
     path('manageusers/', manageUsers.as_view(), name='Manage Users'),
     path('createsection/', CreateSection.as_view(), name='Create Section'),
     path('editaccount/', editAccount.as_view(), name='Edit User'),
-    path('assignsections/', assignSections.as_view(), name='Assign Sections'),
-    path('admineditcontactinfo/', adminEditContactInfo.as_view(), name='Admin Edit Contact Info'),
+    path('assignsections/', AssignSection.as_view(), name='Assign Sections'),
+    path('updatepassword/', UpdatePassword.as_view(), name='Update Password'),
+    path('viewassignments/', TaViewAssignmentsPage.as_view(), name='View Assignments'),
+    path('readpubliccontactinfo/', ReadPublicContactInfoPage.as_view(), name='read_public_contact_info'),
 ]

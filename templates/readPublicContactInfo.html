@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Public Contact Information</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #003366;
+            color: #ffffff;
+        }
+        .card {
+            margin-top: 50px;
+            background-color: #ffc403;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #003366;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #002244;
+        }
+        .table thead th {
+            background-color: #003366;
+            color: #ffffff;
+        }
+        .table tbody tr:hover {
+            background-color: #ffd54f;
+        }
+        .form-control {
+            border-radius: 0;
+        }
+        .alert {
+            color: #000000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5 mb-4 text-center">Public Contact Information</h1>
+        <!-- search/Filter Form -->
+        <form method="get" action="">
+            <div class="form-row align-items-center">
+                <div class="col-sm-8 my-1">
+                    <input type="text" class="form-control" name="search" placeholder="Search by name or email">
+                </div>
+                <div class="col-auto my-1">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+            </div>
+        </form>
+        <!-- USers List -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.fName }}</td>
+                            <td>{{ user.lName }}</td>
+                            <td>{{ user.email }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center">No users found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <a href="/home/" class="btn btn-light mt-3">Home</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

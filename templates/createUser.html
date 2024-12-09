@@ -2,65 +2,104 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Create User</title>
+    <title>Create User - TA Scheduler</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #003366;
+            color: #ffffff;
+        }
+        .card {
+            margin-top: 50px;
+            background-color: #ffc403;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #003366;
+            border: none;
+            margin-bottom: 10px;
+        }
+        .btn-primary:hover {
+            background-color: #002244;
+        }
+        .form-control {
+            border-radius: 0;
+        }
+        .header-logo {
+            max-width: 150px;
+            margin-bottom: 20px;
+        }
+        .alert {
+            color: #000000;
+        }
+        .form-group label {
+            color: #003366;
+        }
+    </style>
 </head>
 <body>
-
-    <h1>Create User</h1>
-    <form action="/createuser/" method="post">
-        {% csrf_token %}
-        <table>
-
-            <tr>
-                <td>Email (required):</td>
-                <td> <input type="text" name="email" required> </td>
-            </tr>
-            <tr>
-                <td>Password (required):</td>
-                <td>
-                    <input type="password" name="password" required>
-                </td>
-            </tr>
-            <tr>
-
-                <td>Role (required): </td>
-                <td>
-                    <select name="role" required>
-                        <option value="">-- Select Role --</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Instructor">Instructor</option>
-                        <option value="TA">TA</option>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <td>First Name (optional):</td>
-                <td><input type="text" name="fName"></td>
-            </tr>
-             <tr>
-                <td>Middle Initial (optional):</td>
-                <td><input type="text" name="midI"></td>
-            </tr>
-             <tr>
-                <td>Last Name (optional):</td>
-                <td><input type="text" name="lName"></td>
-            </tr>
-            <tr>
-                <td>
-                    phone number (optional):
-                </td>
-                <td><input type="tel" name="phone" ></td>
-            </tr>
-        </table>
-        <br>
-        <input type="submit" value="create user" style="margin-left: 15px;">
-    </form>
-    <br>
-    {% if message %}
-        <div style="color:red; font-size: 1.1em;">
-            {{ message }}
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="text-center">
+                    <h1 class="mt-5 mb-4">Create User</h1>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <form action="/createuser/" method="post">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="email">Email (required):</label>
+                                <input type="text" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password (required):</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="role">Role (required):</label>
+                                <select class="form-control" id="role" name="role" required>
+                                    <option value="">-- Select Role --</option>
+                                    <option value="Admin">Admin</option>
+                                    <option value="Instructor">Instructor</option>
+                                    <option value="TA">TA</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="fName">First Name (optional):</label>
+                                <input type="text" class="form-control" id="fName" name="fName">
+                            </div>
+                            <div class="form-group">
+                                <label for="midI">Middle Initial (optional):</label>
+                                <input type="text" class="form-control" id="midI" name="midI">
+                            </div>
+                            <div class="form-group">
+                                <label for="lName">Last Name (optional):</label>
+                                <input type="text" class="form-control" id="lName" name="lName">
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Phone Number (optional):</label>
+                                <input type="tel" class="form-control" id="phone" name="phone">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Create User</button>
+                        </form>
+                        {% if message %}
+                        <div class="alert alert-danger mt-3">
+                            {{ message }}
+                        </div>
+                        {% endif %}
+                        <div class="text-center mt-4">
+                            <a href="/home/" class="btn btn-light">Home</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    {% endif %}
-    <a href="/home/">Home</a>
+    </div>
+
+    <!-- Include scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

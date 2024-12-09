@@ -2,21 +2,154 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Home</title>
+    <title>Home - TA Scheduler</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #003366;
+            color: #ffffff;
+        }
+        .card {
+            margin-top: 50px;
+            background-color: #ffc403;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #003366;
+            border: none;
+            margin-bottom: 10px;
+        }
+        .btn-primary:hover {
+            background-color: #002244;
+        }
+        .form-control {
+            border-radius: 0;
+        }
+        .header-logo {
+            max-width: 150px;
+            margin-bottom: 20px;
+        }
+        .alert {
+            color: #000000;
+        }
+        .nav-tabs .nav-link {
+            color: #ffffff;
+        }
+        .nav-tabs .nav-link.active {
+            background-color: #002244;
+            color: #ffffff;
+        }
+        .tab-content {
+            margin-top: 20px;
+        }
+        .list-group-item {
+            background-color: #ffffff;
+            color: #003366;
+            border: 1px solid #003366;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .list-group-item:hover {
+            background-color: #f0f0f0;
+            color: #003366;
+        }
+        .btn-custom {
+            background-color: #003366;
+            color: #ffffff;
+            border: 1px solid #003366;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .btn-custom:hover {
+            background-color: #002244;
+            color: #ffffff;
+        }
+    </style>
 </head>
 <body>
-<h1>Home</h1>
-<form action="/home/" method="post">
-    {% csrf_token %}
-    <p>Welcome {{name}}</p>
-    
-    <a href="/assignsections/">Section Assignments</a>
-    <a href="/editcontactinfo/">Edit Contact Info</a>
-    <a href="/editaccount/">Edit User</a>
-    <br>
-    <a href="/">Log Out</a>
-    
-</form>
+    <div class="container">
+        <div class="text-center">
+            <h1 class="mt-5 mb-4">TA Scheduler Dashboard</h1>
+            <h2 class="mb-4">Welcome, {{ user.fName }} {{ user.lName }}</h2>
+        </div>
 
+        <!-- Nav Tabs -->
+        <ul class="nav nav-tabs" id="homeTabs" role="tablist">
+            {% if user.userType == "Admin" %}
+            <li class="nav-item">
+                <a class="nav-link active" id="users-tab" data-toggle="tab" href="#users" role="tab">Users</a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+                <a class="nav-link {% if user.userType != 'Admin' %}active{% endif %}" id="courses-tab" data-toggle="tab" href="#courses" role="tab">Courses/Sections</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="account-tab" data-toggle="tab" href="#account" role="tab">Account/Contact</a>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="homeTabsContent">
+            {% if user.userType == "Admin" %}
+            <!-- Users Tab -->
+            <div class="tab-pane fade show active" id="users" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <div class="list-group">
+                            <a href="/manageusers/" class="list-group-item list-group-item-action">Manage Users</a>
+                            <a href="/notifyusers/" class="list-group-item list-group-item-action">Notify Users</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Courses/Sections Tab -->
+            <div class="tab-pane fade {% if user.userType != 'Admin' %}show active{% endif %}" id="courses" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <div class="list-group">
+                            {% if user.userType == "Admin" or user.userType == "Instructor" %}
+                            <a href="/createcourse/" class="list-group-item list-group-item-action">Create Course</a>
+                            <a href="/createsection/" class="list-group-item list-group-item-action">Create Section</a>
+                            <a href="/assignsections/" class="list-group-item list-group-item-action">Assign Sections</a>
+                            {% endif %}
+                            {% if user.userType == "Instructor" %}
+                            <a href="/notifytas/" class="list-group-item list-group-item-action">Notify TAs</a>
+                            {% elif user.userType == "TA" %}
+                            <a href="/viewassignments/" class="list-group-item list-group-item-action">View My Assignments</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account/Contact Tab -->
+            <div class="tab-pane fade" id="account" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <div class="list-group">
+                            <a href="/editaccount/" class="list-group-item list-group-item-action">Edit Account</a>
+                            <a href="/editcontactinfo/" class="list-group-item list-group-item-action">Edit Contact Info</a>
+                            <a href="/readpubliccontactinfo/" class="list-group-item list-group-item-action">View Public Contact Info</a>
+                            <a href="/" class="list-group-item list-group-item-action">Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if message %}
+        <div class="alert alert-info mt-4 text-center">
+            {{ message }}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Include scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

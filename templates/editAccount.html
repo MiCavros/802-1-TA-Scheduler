@@ -2,42 +2,110 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Edit Account</title>
+    <title>Edit Account - TA Scheduler</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #003366;
+            color: #ffffff;
+        }
+        .card {
+            margin-top: 50px;
+            background-color: #ffc403;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #003366;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #002244;
+        }
+        .form-control {
+            border-radius: 0;
+        }
+        .alert {
+            color: #000000;
+        }
+        .modal-content {
+            color: #000000;
+        }
+    </style>
 </head>
 <body>
-    <h1>Edit Account</h1>
-    <form action="/editaccount/" method="post">
-        {% csrf_token %}
-        <table>
-            <tr>
-                <td>First Name:</td>
-                <td><input type="text" name="first_name" value="{{ user.fName }}"></td>
-            </tr>
-            <tr>
-                <td>Last Name:</td>
-                <td><input type="text" name="last_name" value="{{ user.lName }}"></td>
-            </tr>
-            <tr>
-                <td>Email (required):</td>
-                <td><input type="email" name="email" value="{{ user.email }}" required></td>
-            </tr>
-            <tr>
-                <td>Password:</td>
-                <td><input type="password" name="password"></td>
-            </tr>
-            <tr>
-                <td>Confirm Password:</td>
-                <td><input type="password" name="confirm_password"></td>
-            </tr>
-        </table>
-        <br>
-        <input type="submit" value="Update Account">
-    </form>
-    {% if message %}
-        <div style="color:red; font-size: 1.1em;">
-            {{ message }}
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="text-center">
+                    <h1 class="mt-5">Edit Account</h1>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <form action="/editaccount/" method="post">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="first_name">First Name:</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.fName }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="last_name">Last Name:</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.lName }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email (required):</label>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-block" data-toggle="modal" data-target="#updatePasswordModal">Change Password</button>
+                            <button type="submit" class="btn btn-primary btn-block mt-3">Update Account</button>
+                        </form>
+                        {% if message %}
+                            <div class="alert alert-warning mt-3 text-center">
+                                {{ message }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="text-center mt-3 text-white">
+                    <a href="/home/" class="btn btn-light">Home</a>
+                </div>
+            </div>
         </div>
-    {% endif %}
-    <a href="/home/">Home</a>
+    </div>
+
+    <!-- Update Password Modal -->
+    <div class="modal fade" id="updatePasswordModal" tabindex="-1" aria-labelledby="updatePasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updatePasswordModalLabel">Update Password</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="/updatepassword/" method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="current_password">Current Password:</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="new_password">New Password:</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm_new_password">Confirm New Password:</label>
+                            <input type="password" class="form-control" id="confirm_new_password" name="confirm_new_password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Update Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
