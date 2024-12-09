@@ -1,41 +1,36 @@
 from django.db import models
+from datetime import date  # Import date
 
 class User(models.Model):
-    id = models.IntegerField(primary_key=True)
-    userType = models.CharField(max_length=10)
+    id = models.AutoField(primary_key=True)
     fName = models.CharField(max_length=50)
     lName = models.CharField(max_length=50)
-    MidInit = models.CharField(max_length=50)
-    email = models.CharField(max_length=50)
+    MidInit = models.CharField(max_length=1, null=True, blank=True)
+    email = models.EmailField(unique=True)
     password = models.CharField(max_length=50)
-testAdmin = User(fName = "Test", lName = "Admin", id = 1, userType = "Admin", email = "testadmin@uwm.edu", password = "1234" )
-
+    userType = models.CharField(max_length=20)
 
 class userPublicInfo(models.Model):
-    userID = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    workPhone = models.IntegerField
-    officeHours = models.DateField
+    user = models.OneToOneField(User, on_delete=models.CASCADE, default=1)
+    email = models.EmailField(default="example@uwm.edu")
+    phone = models.CharField(max_length=15, null=True, blank=True)
+    address = models.CharField(max_length=255, null=True, blank=True)
 
 class userPrivateInfo(models.Model):
-    userID = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    cellPhone = models.IntegerField
-    address = models.CharField(max_length=50)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, default=1) 
+    dob = models.DateField(default=date(2000, 1, 1))
 
 class Class(models.Model):
-    title = models.CharField(max_length=50)
-    description = models.CharField(max_length=1000)
-    schedule = models.CharField(max_length=255, default="Default Schedule")
-    id = models.IntegerField(primary_key=True)
-    location = models.CharField(max_length=50)
-    time = models.DateTimeField
-    assignments = models.TextField(null=True, blank=True) #optional assignments
-    instructor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    schedule = models.CharField(max_length=255)
+    assignments = models.TextField(default="No assignments")
+    location = models.CharField(max_length=100, null=True, blank=True)
 
 class Section(models.Model):
     sectionId = models.AutoField(primary_key=True)
-    classId = models.ForeignKey(Class, on_delete=models.CASCADE, default=1)
-    TA = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
-    schedule = models.CharField(max_length=255, default="Default Schedule")
-    max_capacity = models.IntegerField(default=30)
-
-
+    section_name = models.CharField(max_length=100, default="Default Section")
+    classId = models.ForeignKey(Class, on_delete=models.CASCADE)
+    TA = models.ForeignKey(User, on_delete=models.CASCADE)
+    schedule = models.CharField(max_length=255)
+    max_capacity = models.IntegerField()

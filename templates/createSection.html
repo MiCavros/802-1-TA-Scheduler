@@ -2,116 +2,171 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Create Section </title>
+    <title>Create Section - TA Scheduler</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f7f7f7;
+            background-color: #003366;
+            color: #ffffff;
         }
-        header {
-            background-color: #007BFF;
-            color: white;
-            padding: 10px 20px;
-            text-align: center;
+        .card {
+            margin-top: 50px;
+            background-color: #ffc403;
+            border: none;
         }
-        main {
-            margin: 20px auto;
-            max-width: 600px;
-            background: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        .btn-primary {
+            background-color: #003366;
+            border: none;
+            margin-bottom: 10px;
         }
-        h1 {
-            text-align: center;
-            color: #333;
+        .btn-primary:hover {
+            background-color: #002244;
         }
-        section {
+        .form-control {
+            border-radius: 0;
+        }
+        .header-logo {
+            max-width: 150px;
             margin-bottom: 20px;
         }
-        label {
-            font-weight: bold;
-            display: block;
-            margin: 10px 0 5px;
+        .alert {
+            color: #000000;
         }
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-bottom: 10px;
+        .form-group label {
+            color: #003366;
         }
-        footer {
-            text-align: center;
-            padding: 10px;
-            color: #666;
-        }
-        button {
-            background-color: #007BFF;
-            color: white;
-            padding: 10px 15px;
-            border: none;
+        .section-details {
+            background-color: rgba(0, 0, 0, 0.05);
+            padding: 20px;
             border-radius: 5px;
-            cursor: pointer;
+            margin-bottom: 20px;
         }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .error-message {
-            color: red;
-            font-size: 14px;
-            margin-bottom: 10px;
+        .schedule-details {
+            background-color: rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            border-radius: 5px;
         }
     </style>
 </head>
-<body>  
-    <header>
-        <h2>TA Scheduler - Create Section</h2>
-    </header> 
-    <main>
-        <h1>   Create a New Section   </h1>
-        {% if error_message %}
-        <p class="error-message">{{ error_message }}</p>
-        {% endif %}
-        <form action="/createsection/"  method="post">
-            {% csrf_token %}
-             <section>
-                <label for="course">Select Course</label>
-                <select id="course" name="course_id" required>
-                    <option value= "" disabled selected> Select a course</option>
-                    {% for course in courses %}
-                        <option value="{{ course.id }}">{{ course.title }}</option>
-                    {% endfor %}
-                </select>
-            </section>
-            <section>
-                <label for="section_name"> Section Name</label>
-                <input type="text" id="section_name" name=" section_name " placeholder="enter section name" required>
-            </section>
-            <section>     
-                <label for="schedule">Section Schedule</label>
-                <input type="text" id="schedule" name="schedule" placeholder="e.g., Tuesday, 2:00 PM - 4:00 PM" required>
-            </section>
-            <section>
-                <label for="instructor">Assign Instructor</label>
-                <select id="instructor" name="instructor_id" required>
-                    <option value="" disabled selected>Select an INstructor</option>
-                    {% for instructor in instructors %}
-                        <option value="{{ instructor.id }}">{{ instructor.name }}</option>
-                    {% endfor %}
-                </select> 
-            </section>
-            <section>
-                <label for="max_capacity">Max Capacity</label>
-                <input type="number" id="max_capacity" name="max_capacity" placeholder="enter maximum number of students" required>
-            </section>
-            <button type="submit ">Create Section</button>
-        </form>
-    </main>
-    <footer>
-        <p>&copy; 2024 TA Scheduler</p>
-    </footer>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <div class="text-center">
+                    <h1 class="mt-5 mb-4">Create a New Section</h1>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <form action="/createsection/" method="post">
+                            {% csrf_token %}
+                            <div class="row">
+                                <!-- Left Column - Section Details -->
+                                <div class="col-md-6">
+                                    <div class="section-details">
+                                        <h4 class="mb-4">Section Information</h4>
+                                        <div class="form-group">
+                                            <label for="course">Select Course</label>
+                                            <select class="form-control" id="course" name="course_id" required>
+                                                <option value="" disabled selected>Select a course</option>
+                                                {% for course in courses %}
+                                                    <option value="{{ course.id }}">{{ course.title }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="section_name">Section Name</label>
+                                            <input type="text" class="form-control" id="section_name" name="section_name" placeholder="Enter section name" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="instructor">Assign Instructor</label>
+                                            <select class="form-control" id="instructor" name="instructor_id" required>
+                                                <option value="" disabled selected>Select an instructor</option>
+                                                {% for instructor in instructors %}
+                                                    <option value="{{ instructor.id }}">{{ instructor.fName }} {{ instructor.lName }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="max_capacity">Max Capacity</label>
+                                            <input type="number" class="form-control" id="max_capacity" name="max_capacity" placeholder="Enter maximum number of students" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Right Column - Schedule -->
+                                <div class="col-md-6">
+                                    <div class="schedule-details">
+                                        <h4 class="mb-4">Schedule Information</h4>
+                                        <div class="form-group">
+                                            <label>Section Schedule</label>
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="start_date">Start Date</label>
+                                                    <input type="date" class="form-control" id="start_date" name="start_date" required>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="end_date">End Date</label>
+                                                    <input type="date" class="form-control" id="end_date" name="end_date" required>
+                                                </div>
+                                            </div>
+                                            <div class="row mt-3">
+                                                <div class="col-md-6">
+                                                    <label>Days</label>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="days[]" value="Monday" id="monday">
+                                                        <label class="form-check-label" for="monday">Monday</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="days[]" value="Tuesday" id="tuesday">
+                                                        <label class="form-check-label" for="tuesday">Tuesday</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="days[]" value="Wednesday" id="wednesday">
+                                                        <label class="form-check-label" for="wednesday">Wednesday</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="days[]" value="Thursday" id="thursday">
+                                                        <label class="form-check-label" for="thursday">Thursday</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="days[]" value="Friday" id="friday">
+                                                        <label class="form-check-label" for="friday">Friday</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="start_time">Start Time</label>
+                                                    <input type="time" class="form-control mb-3" id="start_time" name="start_time" required>
+                                                    <label for="end_time">End Time</label>
+                                                    <input type="time" class="form-control" id="end_time" name="end_time" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary btn-block">Create Section</button>
+                                </div>
+                            </div>
+                        </form>
+                        {% if message %}
+                        <div class="alert alert-danger mt-3">
+                            {{ message }}
+                        </div>
+                        {% endif %}
+                        <div class="text-center mt-4">
+                            <a href="/home/" class="btn btn-light">Home</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
