@@ -2,11 +2,10 @@ from django.db import models
 from datetime import date  # Import date
 
 class User(models.Model):
-    id = models.AutoField(primary_key=True)
     fName = models.CharField(max_length=50)
     lName = models.CharField(max_length=50)
     MidInit = models.CharField(max_length=1, null=True, blank=True)
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, primary_key=True)
     password = models.CharField(max_length=50)
     userType = models.CharField(max_length=20)
 
