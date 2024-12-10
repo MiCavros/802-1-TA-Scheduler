@@ -3,54 +3,39 @@ from datetime import datetime
 from django.shortcuts import render, redirect
 from django.views import View
 from django.db.models import Q
+
+from .main import retrieveSessionID, pageAuthenticate, loginAuthenticate, retrieveEditUserID, editUser, createSection, \
+    addUser
 from .models import User, Class, Section
 
 class Login(View):
     def get(self, request):
         return render(request, 'login.html')
     def post(self, request):
-        noUser = False
-        badPassword = False
-        blankEntry = False
-        if request.POST['email'] == "" or request.POST['password'] == "":
-            return render(request, "login.html", {"message": "Email and/or Password cannot be blank"})
-        try:
-            user = User.objects.get(email=request.POST['email'].lower())
-            badPassword = (user.password != request.POST['password'])
-        except:
-            noUser = True
+        password = request.POST['password']
+        email = request.POST['email']
+        return loginAuthenticate(request, email, password)
 
-        if noUser:
-            return render(request, "login.html", {"message": "No User with this Email"})
-        elif badPassword:
-            return render(request,"login.html",{"message":"Incorrect Password"})
-        else:
-            request.session["id"] = user.id
-            return redirect("/home/")
 
 class Home(View):
     def get(self, request):
-        userID = request.session["id"]
-        m = User.objects.get(id=userID)
+        m = retrieveSessionID(request)
         return render(request, 'home.html', {"user": m})
 
 class CreateUser(View):
     def get(self, request):
         m = retrieveSessionID(request)
-        if m.userType == "Admin":
-            userID = request.session["id"]
-            m = User.objects.get(id=userID)
-            if m.userType != "Admin":
-                return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page", "userType": m.userType})
-            else:
-                return render(request, 'createUser.html', {"message": "", "userType": m.userType})
+        if pageAuthenticate(m, "Admin"):
+            return render(request, 'userNoAccess.html',
+                          {"message": "User Cannot Access This Page", "userType": m.userType})
         else:
-            return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
+            return render(request, 'createUser.html', {"message": "", "userType": m.userType})
+
     def post(self, request):
         m = retrieveSessionID(request)
         if m.userType == "Admin":
-            userID = request.session["id"]
-            m = User.objects.get(id=userID)
+            userID = request.session["email"]
+            m = User.objects.get(email=userID)
             noUser = False
 
             if request.POST['email'] == "":
@@ -69,9 +54,9 @@ class CreateUser(View):
                 noUser = True
             if not noUser:
                 return render(request, "createUser.html", {"message": "There is already a user with that email"})
-            newID = generateUserID(request.POST['email'].lower)
 
-            addUser(newID, request.POST['fName'].lower(), request.POST['lName'].lower(),request.POST['midI'].lower, request.POST['role'], request.POST['email'].lower(), request.POST['password'])
+
+            addUser(request.POST['fName'].lower(), request.POST['lName'].lower(),request.POST['midI'].lower, request.POST['role'], request.POST['email'].lower(), request.POST['password'])
             #newUser = User.objects.create(fName=request.POST['fName'].lower(), lName=request.POST['lName'].lower(), MidInit=request.POST['midI'].lower(), id=newID, userType=request.POST['role'], email=request.POST['email'].lower(), password=request.POST['password'].lower())
             return render(request, 'createUser.html', {"message" : "User Created Successfully", "userType": m.userType})
         else:
@@ -370,60 +355,3 @@ class ReadPublicContactInfoPage(View):
         else:
             users = User.objects.all()
         return render(request, 'readPublicContactInfo.html', {'users': users})
-
-def deleteUser(request, d, Users):
-    try:
-        user = User.objects.get(id=d)
-        user.delete()
-        return render(request, "manageUsers.html", {"message": "User deleted successfully", "users": Users})
-    except User.DoesNotExist:
-        return render(request, "manageUsers.html", {"message": "User does not exist", "users": Users})
-
-def retrieveSessionID(request):
-    userID = request.session["id"]
-    m = User.objects.get(id=userID)
-    return m
-
-def retrieveEditUserID(request):
-
-    try:
-        editUserID = request.session["editUserID"]
-        editUser = User.objects.get(id(editUserID))
-    except:
-        editUser = User.objects.get(id=request.session['id'])
-    return editUser
-
-def editUser(user, first_name, last_name, email, password):
-    j = User.objects.get(id=user.id)
-    j.fName = first_name
-    j.lName = last_name
-    j.email = email
-    j.password = password
-    j.save()
-
-def addUser(id, first_name, last_name, midI, userType, email, password):
-    n = User.objects.create(id= id,fName= first_name, lName = last_name, MidInit = midI, email = email, password = password, userType = userType)
-
-def createSection(request, section_name, instructor_id, schedule, course_id, max_capacity):
-    instructor = User.objects.get(id=instructor_id)
-    course = Class.objects.get(id=course_id)
-    Section.objects.create(
-        sectionId=Section.objects.count() + 1,
-        section_name=section_name,
-        classId=course,
-        TA=instructor,
-        schedule=schedule,
-        max_capacity=int(max_capacity)
-    )
-
-def generateUserID(email):
-    idInUse = True
-
-    while idInUse:
-        newID = random.randint(0, 500)
-        try:
-            userID = User.objects.get(id=newID)
-            idInUse = True
-        except:
-            idInUse = False
-    return newID
