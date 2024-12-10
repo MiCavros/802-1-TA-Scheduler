@@ -7,7 +7,7 @@ from TA_Scheduler.models import User, userPublicInfo, userPrivateInfo, Class, Se
 class LoginTest(TestCase):
     def setUp(self):
         self.client = Client()
-        testUser = User(id=1, email="testUser@uwm.edu", password="1234")
+        testUser = User( email="testUser@uwm.edu", password="1234")
         testUser.save()
 
     def test_wrongPassword(self):
@@ -185,9 +185,9 @@ class CreateCourse(TestCase):
 class createUserTest(TestCase):
     def setUp(self):
         self.client = Client()
-        testUser = User(id=1, userType="TA", email="testuser@uwm.edu", password="1234")
-        testAdminUser = User(id=2, userType="Admin", email="testadminuser@uwm.edu", password="2222")
-        testInstructor = User(id=3, userType="Instructor", email="testinstructor@uwm.edu", password="4343")
+        testUser = User(userType="TA", email="testuser@uwm.edu", password="1234")
+        testAdminUser = User(userType="Admin", email="testadminuser@uwm.edu", password="2222")
+        testInstructor = User(userType="Instructor", email="testinstructor@uwm.edu", password="4343")
         testUser.save()
         testAdminUser.save()
         testInstructor.save()
@@ -257,7 +257,7 @@ class EditContactInfoTest(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create(
-            id=1, userType="TA", email="testUser@uwm.edu", password="1234"
+            userType="TA", email="testUser@uwm.edu", password="1234"
         )
         self.public_info = userPublicInfo.objects.create(
             user=self.user, email="testUser@uwm.edu", phone="1234567890"
@@ -331,7 +331,7 @@ class EditContactInfoTest(TestCase):
     # Negative Test: Unauthorized user trying to edit another user's contact info
     def test_unauthorizedAccess(self):
         other_user = User.objects.create(
-            id=2, userType="Instructor", email="otherUser@uwm.edu", password="4321"
+            userType="Instructor", email="otherUser@uwm.edu", password="4321"
         )
         self.client.force_login(other_user)
 
@@ -346,12 +346,12 @@ class EditContactInfoTest(TestCase):
 class createSectionTest(TestCase):
     def setUp(self):
         self.client = Client()
-        testAdminUser = User(id=2, userType="ADMIN", email="testAdminUser@uwm.edu", password="2222")
+        testAdminUser = User(userType="ADMIN", email="testAdminUser@uwm.edu", password="2222")
         testAdminUser.save()
-        testInstructor = User(id=3, userType="INSTRUCTOR", email="testInstructor@uwm.edu", password = "4444")
+        testInstructor = User(userType="INSTRUCTOR", email="testInstructor@uwm.edu", password = "4444")
         testInstructor.save()
 
-        testCourse = Class(id=2, title="testCourse", instructor=testInstructor, schedule="Start Date: 01/01/2025, End Date: 01/15/2025")
+        testCourse = Class(title="testCourse", instructor=testInstructor, schedule="Start Date: 01/01/2025, End Date: 01/15/2025")
         testCourse.save()
 
     def test_successfulSectionCreation(self):
@@ -413,11 +413,11 @@ class DeleteUserTest(TestCase):
 class testManageUsers(TestCase):
     def setUp(self):
         self.client = Client()
-        testAdminUser = User(id=2, userType="Admin", email="testAdminUser@uwm.edu", password="2222")
+        testAdminUser = User(userType="Admin", email="testAdminUser@uwm.edu", password="2222")
         testAdminUser.save()
-        testInstructor = User(id=3, userType="Instructor", email="testInstructor@uwm.edu", password="4444")
+        testInstructor = User(userType="Instructor", email="testInstructor@uwm.edu", password="4444")
         testInstructor.save()
-        testUser = User(id=1, userType="TA", email="testUser@uwm.edu", password="1234")
+        testUser = User(userType="TA", email="testUser@uwm.edu", password="1234")
         testUser.save()
 
     def test_taAccess(self):
@@ -448,11 +448,11 @@ class testManageUsers(TestCase):
 
 class testEditAccount(TestCase):
     def setUp(self):
-        testAdminUser = User(id=2, userType="ADMIN", email="testAdminUser@uwm.edu", password="2222")
+        testAdminUser = User(userType="ADMIN", email="testAdminUser@uwm.edu", password="2222")
         testAdminUser.save()
-        testInstructor = User(id=3, userType="INSTRUCTOR", email="testInstructor@uwm.edu", password="4444")
+        testInstructor = User(userType="INSTRUCTOR", email="testInstructor@uwm.edu", password="4444")
         testInstructor.save()
-        testUser = User(id=1, userType="TA", email="testUser@uwm.edu", password="1234")
+        testUser = User(userType="TA", email="testUser@uwm.edu", password="1234")
         testUser.save()
 
 
@@ -494,13 +494,13 @@ class testEditAccount(TestCase):
 class AssignSectionTest(TestCase):
     def setUp(self):
         self.client = Client()
-        self.admin_user = User.objects.create(id=1, userType="Admin", email="adminUser@uwm.edu", password="1234")
-        self.instructor_user = User.objects.create(id=2, userType="Instructor", email="instructorUser@uwm.edu", password="5678")
-        self.ta_user = User.objects.create(id=3, userType="TA", email="taUser@uwm.edu", password="4321")
+        self.admin_user = User.objects.create( userType="Admin", email="adminUser@uwm.edu", password="1234")
+        self.instructor_user = User.objects.create( userType="Instructor", email="instructorUser@uwm.edu", password="5678")
+        self.ta_user = User.objects.create( userType="TA", email="taUser@uwm.edu", password="4321")
 
         # Create Class and Section
-        self.course = Class.objects.create(id=1, title="Test Course", description="Test Description", schedule="Start Date: 01/01/2025, End Date: 05/01/2025")
-        self.section = Section.objects.create(id=1, section_number="101", course=self.course)
+        self.course = Class.objects.create(title="Test Course", description="Test Description", schedule="Start Date: 01/01/2025, End Date: 05/01/2025")
+        self.section = Section.objects.create(section_number="101", course=self.course)
 
     # Positive Test: Admin assigns a TA to a section successfully
     def test_adminAssignTASuccess(self):
