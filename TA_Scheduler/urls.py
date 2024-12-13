@@ -18,14 +18,14 @@ from django.contrib import admin
 from django.urls import path
 
 from TA_Scheduler.views import Login, Home, CreateUser, CreateCourse, manageUsers, CreateSection, \
-    editContactInfo, editAccount, AssignSection, UpdatePassword, TaViewAssignmentsPage, ReadPublicContactInfoPage
+    editContactInfo, editAccount, AssignSection, UpdatePassword, TaViewAssignmentsPage, ReadPublicContactInfoPage, \
+    InstructorViewCourses, AdminViewAllAssignments, EditAssignment, DeleteAssignment, EditCourse, DeleteCourse
 from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('', Login.as_view(), name='Login'),
-
     path('home/', Home.as_view(), name='Home'),
 
     path('createuser/', CreateUser.as_view(), name='Create User'),
@@ -38,4 +38,10 @@ urlpatterns = [
     path('updatepassword/', UpdatePassword.as_view(), name='Update Password'),
     path('viewassignments/', TaViewAssignmentsPage.as_view(), name='View Assignments'),
     path('readpubliccontactinfo/', ReadPublicContactInfoPage.as_view(), name='read_public_contact_info'),
+    path('instructor/viewcourses/', InstructorViewCourses.as_view(), name='Instructor View Courses'),
+    path('viewallassignments/', AdminViewAllAssignments.as_view(), name='Admin View All Assignments'),
+    path('editassignment/', EditAssignment.as_view(), name='Edit Assignment'),
+    path('deleteassignment/', DeleteAssignment.as_view(), name='Delete Assignment'),
+    path('editcourse/', EditCourse.as_view(), name='Edit Course'),
+    path('deletecourse/', DeleteCourse.as_view(), name='Delete Course'),
 ]

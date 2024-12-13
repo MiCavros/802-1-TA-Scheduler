@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Courses - Instructor</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #003366;
+            color: #ffffff;
+        }
+        .card {
+            margin-top: 50px;
+            background-color: #ffc403;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #003366;
+            border: none;
+            margin-bottom: 10px;
+        }
+        .btn-primary:hover {
+            background-color: #002244;
+        }
+        .form-control {
+            border-radius: 0;
+        }
+        .header-logo {
+            max-width: 150px;
+            margin-bottom: 20px;
+        }
+        .alert {
+            color: #000000;
+        }
+        .form-group label {
+            color: #003366;
+        }
+        .course-title {
+            color: #003366;
+        }
+        .section-info {
+            color: #003366;
+        }
+        .list-group-item {
+            border: 2px solid #ffc403; 
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        .sections-list ul {
+            margin-top: 10px;
+            padding-left: 20px;
+        }
+        .sections-list li {
+            border: 1px solid #ffc403;  
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: rgba(255, 196, 3, 0.1); 
+        }
+        .list-group {
+            background-color: #ffc403;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .list-group-item {
+            background-color: #ffffff;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="text-center">
+            <h1 class="mt-5">My Courses</h1>
+        </div>
+        {% if courses %}
+            <ul class="list-group mt-3">
+                {% for course in courses %}
+                    <li class="list-group-item">
+                        <h5 class="course-title">{{ course.title }}</h5>
+                        <p class="section-info">{{ course.description }}</p>
+                        <div class="sections-list">
+                            <h6 class="section-info">Sections:</h6>
+                            <ul class="list-unstyled">
+                                {% for section in sections %}
+                                    {% if section.classId == course %}
+                                        <li class="section-info mb-4">
+                                            <strong>Section:</strong> {{ section.section_name }}<br>
+                                            <strong>TA:</strong> {% if section.TA %}{{ section.TA.fName }} {{ section.TA.lName }}{% else %}Unassigned{% endif %}<br>
+                                            <strong>Schedule:</strong><br>
+                                            {{ section.formatted_schedule }}
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="alert alert-info mt-3 text-center">
+                You are not assigned to any courses.
+            </div>
+        {% endif %}
+        <div class="text-center mt-3">
+            <a href="/home/" class="btn btn-light">Home</a>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
