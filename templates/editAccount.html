@@ -23,12 +23,16 @@
         }
         .form-control {
             border-radius: 0;
+            color: #003366;
         }
         .alert {
             color: #000000;
         }
         .modal-content {
             color: #000000;
+        }
+        .form-group label {
+            color: #003366;
         }
     </style>
 </head>
@@ -43,6 +47,7 @@
                     <div class="card-body">
                         <form action="/editaccount/" method="post">
                             {% csrf_token %}
+                            <input type="hidden" name="user_id" value="{{ user.id }}">
                             <div class="form-group">
                                 <label for="first_name">First Name:</label>
                                 <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.fName }}">
@@ -54,6 +59,14 @@
                             <div class="form-group">
                                 <label for="email">Email (required):</label>
                                 <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password:</label>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Enter new password">
+                            </div>
+                            <div class="form-group">
+                                <label for="confirm_password">Confirm Password:</label>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm new password">
                             </div>
                             <button type="button" class="btn btn-secondary btn-block" data-toggle="modal" data-target="#updatePasswordModal">Change Password</button>
                             <button type="submit" class="btn btn-primary btn-block mt-3">Update Account</button>

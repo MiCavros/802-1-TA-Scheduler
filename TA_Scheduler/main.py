@@ -40,9 +40,12 @@ def loginAuthenticate(request, email, password):
 
 
 def retrieveSessionID(request):
-    userEmail = request.session["email"]
-    m = User.objects.get(email=userEmail)
-    return m
+    try:
+        userEmail = request.session["email"]
+        m = User.objects.get(email=userEmail)
+        return m
+    except (KeyError, User.DoesNotExist):
+        return None
 
 ##
 
@@ -50,14 +53,13 @@ def retrieveSessionID(request):
 ##Users
     #Add User
 def addUser(first_name, last_name, midI, userType, email, password):
-    n = User.objects.create(fName= first_name, lName = last_name, MidInit = midI, email = email, password = password, userType = userType)
+    return User.objects.create(fName=first_name, lName=last_name, MidInit=midI, email=email, password=password, userType=userType)
 
     #Edit User
 def retrieveEditUserID(request):
-
     try:
-        editUserID = request.session["editUserEmail"]
-        editUser = User.objects.get(email=editUserID)
+        editUserID = request.session["editUserID"]
+        editUser = User.objects.get(id=editUserID)
     except:
         editUser = User.objects.get(email=request.session['email'])
     return editUser

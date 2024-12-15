@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>View Assignments - TA Scheduler</title>
+    <title>View Courses - Instructor</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -13,33 +13,6 @@
             margin-top: 50px;
             background-color: #ffc403;
             border: none;
-        }
-        .btn-primary {
-            background-color: #003366;
-            border: none;
-        }
-        .btn-primary:hover {
-            background-color: #002244;
-        }
-        .form-control {
-            border-radius: 0;
-        }
-        .header-logo {
-            max-width: 150px;
-            margin-bottom: 20px;
-        }
-        .alert {
-            color: #000000;
-        }
-        .assignment-text {
-            color: #004080;
-            margin-bottom: 5px;
-            font-size: 1.1em;
-        }
-        .list-group-item {
-            background-color: #fff;
-            padding: 15px;
-            margin-bottom: 10px;
         }
         .course-header {
             display: flex;
@@ -67,8 +40,15 @@
         .collapsed .toggle-indicator::after {
             content: '▶';
         }
-        .assignment-details {
-            display: block;
+        .list-group-item {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .section-info {
+            color: #004080;
+            margin-bottom: 5px;
+            font-size: 1.1em;
         }
         .schedule-info {
             margin-top: 10px;
@@ -86,47 +66,53 @@
         .schedule-item:last-child {
             border-bottom: none;
         }
-        .section-info {
-            flex-grow: 1;
+        .ta-info {
+            margin-bottom: 10px;
+            color: #004080;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="text-center">
-            <h1 class="mt-5">My Assignments</h1>
+            <h1 class="mt-5">My Courses</h1>
         </div>
         <div class="card">
             <div class="card-body">
-                {% if assignments %}
-                    {% regroup assignments|dictsort:"classId.title" by classId.title as course_list %}
-                    {% for course in course_list %}
+                {% if courses %}
+                    {% for course in courses %}
                         <div class="course-section">
                             <div class="course-header" onclick="toggleSection('course-{{forloop.counter}}')">
-                                <h4>{{ course.grouper }}</h4>
+                                <h4>{{ course.title }}</h4>
                                 <span class="toggle-indicator"></span>
                             </div>
                             <div id="course-{{forloop.counter}}" class="assignment-group">
-                                {% for assignment in course.list %}
-                                    <div class="list-group-item">
-                                        <div class="assignment-details">
-                                            <div class="section-info">
-                                                <h5 class="assignment-text">Section: {{ assignment.section_name }}</h5>
+                                <div class="list-group-item">
+                                    <p class="section-info">{{ course.description }}</p>
+                                </div>
+                                {% for section in sections %}
+                                    {% if section.classId == course %}
+                                        <div class="list-group-item">
+                                            <h5 class="section-info">Section: {{ section.section_name }}</h5>
+                                            <div class="ta-info">
+                                                <strong>TA:</strong> {% if section.TA %}{{ section.TA.fName }} {{ section.TA.lName }}{% else %}Unassigned{% endif %}
                                             </div>
                                             <div class="schedule-info">
-                                                {% for item in assignment.schedule|split:";" %}
-                                                    <div class="schedule-item">{{ item }}</div>
-                                                {% endfor %}
+                                                {% with items=section.formatted_schedule|split:"\n" %}
+                                                    {% for item in items %}
+                                                        <div class="schedule-item">{{ item }}</div>
+                                                    {% endfor %}
+                                                {% endwith %}
                                             </div>
                                         </div>
-                                    </div>
+                                    {% endif %}
                                 {% endfor %}
                             </div>
                         </div>
                     {% endfor %}
                 {% else %}
                     <div class="alert alert-info mt-3 text-center">
-                        No assignments found.
+                        You are not assigned to any courses.
                     </div>
                 {% endif %}
             </div>

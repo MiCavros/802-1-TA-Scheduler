@@ -114,11 +114,15 @@
                             <a href="/createcourse/" class="list-group-item list-group-item-action">Create Course</a>
                             <a href="/createsection/" class="list-group-item list-group-item-action">Create Section</a>
                             <a href="/assignsections/" class="list-group-item list-group-item-action">Assign Sections</a>
-                            {% endif %}
                             {% if user.userType == "Instructor" %}
-                            <a href="/notifytas/" class="list-group-item list-group-item-action">Notify TAs</a>
-                            {% elif user.userType == "TA" %}
-                            <a href="/viewassignments/" class="list-group-item list-group-item-action">View My Assignments</a>
+                                <a href="/instructor/viewcourses/" class="list-group-item list-group-item-action" style="color: #003366;">View Courses</a>
+                            {% endif %}
+                            {% endif %}
+                            {% if user.userType == "TA" %}
+                                <a href="/viewassignments/" class="list-group-item list-group-item-action">View My Assignments</a>
+                            {% endif %}
+                            {% if user.userType == "Admin" %}
+                                <a href="/viewallassignments/" class="list-group-item list-group-item-action">View All Courses</a>
                             {% endif %}
                         </div>
                     </div>
@@ -133,6 +137,9 @@
                             <a href="/editaccount/" class="list-group-item list-group-item-action">Edit Account</a>
                             <a href="/editcontactinfo/" class="list-group-item list-group-item-action">Edit Contact Info</a>
                             <a href="/readpubliccontactinfo/" class="list-group-item list-group-item-action">View Public Contact Info</a>
+                            {% if user.userType == "Instructor" %}
+                                <a href="/notifytas/" class="list-group-item list-group-item-action">Notify TAs</a>
+                            {% endif %}
                             <a href="/" class="list-group-item list-group-item-action">Logout</a>
                         </div>
                     </div>
