@@ -41,6 +41,54 @@
             padding: 15px;
             margin-bottom: 10px;
         }
+        .course-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #004080;
+            color: white;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .course-section {
+            margin-bottom: 20px;
+        }
+        .assignment-group {
+            padding-left: 15px;
+            display: block;
+        }
+        .toggle-indicator::after {
+            content: '▼';
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+        .collapsed .toggle-indicator::after {
+            content: '▶';
+        }
+        .assignment-details {
+            display: block;
+        }
+        .schedule-info {
+            margin-top: 10px;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+        }
+        .schedule-item {
+            padding: 5px 0;
+            color: #004080;
+            font-size: 0.9em;
+            border-bottom: 1px solid #eee;
+        }
+        .schedule-item:last-child {
+            border-bottom: none;
+        }
+        .section-info {
+            flex-grow: 1;
+        }
     </style>
 </head>
 <body>
@@ -51,15 +99,31 @@
         <div class="card">
             <div class="card-body">
                 {% if assignments %}
-                    <ul class="list-group">
-                        {% for assignment in assignments %}
-                            <li class="list-group-item">
-                                <h5 class="assignment-text">{{ assignment.classId.title }}</h5>
-                                <p class="assignment-text">Section: {{ assignment.section_name }}</p>
-                                <p class="assignment-text">Schedule: {{ assignment.schedule }}</p>
-                            </li>
-                        {% endfor %}
-                    </ul>
+                    {% regroup assignments|dictsort:"classId.title" by classId.title as course_list %}
+                    {% for course in course_list %}
+                        <div class="course-section">
+                            <div class="course-header" onclick="toggleSection('course-{{forloop.counter}}')">
+                                <h4>{{ course.grouper }}</h4>
+                                <span class="toggle-indicator"></span>
+                            </div>
+                            <div id="course-{{forloop.counter}}" class="assignment-group">
+                                {% for assignment in course.list %}
+                                    <div class="list-group-item">
+                                        <div class="assignment-details">
+                                            <div class="section-info">
+                                                <h5 class="assignment-text">Section: {{ assignment.section_name }}</h5>
+                                            </div>
+                                            <div class="schedule-info">
+                                                {% for item in assignment.schedule|split:";" %}
+                                                    <div class="schedule-item">{{ item }}</div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
                 {% else %}
                     <div class="alert alert-info mt-3 text-center">
                         No assignments found.
@@ -74,5 +138,13 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const header = section.previousElementSibling;
+            section.classList.toggle('d-none');
+            header.classList.toggle('collapsed');
+        }
+    </script>
 </body>
 </html>

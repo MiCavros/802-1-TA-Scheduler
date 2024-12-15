@@ -3,10 +3,15 @@ from datetime import datetime
 from django.shortcuts import render, redirect
 from django.views import View
 from django.db.models import Q, Prefetch
+from django.template.defaultfilters import register
 
 from .main import retrieveSessionID, pageAuthenticate, loginAuthenticate, retrieveEditUserID, editUser, createSection, \
     addUser
 from .models import User, Class, Section
+
+@register.filter(name='split')
+def split(value, arg):
+    return [part.strip() for part in value.split(arg)]
 
 class Login(View):
     def get(self, request):
@@ -431,18 +436,6 @@ class AdminViewAllAssignments(View):
             "courses": courses
         })
 
-class EditAssignment(View):
-    def post(self, request):
-        m = retrieveSessionID(request)
-        if m is None or m.userType != "Admin":
-            return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
-        
-        section_id = request.POST.get("section_id")
-        section = Section.objects.get(sectionId=section_id)
-        request.session['edit_section_id'] = section_id
-        
-        return redirect('/createsection/') 
-
 class DeleteAssignment(View):
     def post(self, request):
         m = retrieveSessionID(request)
@@ -456,20 +449,6 @@ class DeleteAssignment(View):
             return redirect('/viewallassignments/')
         except Section.DoesNotExist:
             return render(request, 'viewAllAssignments.html', {"message": "Assignment not found"})
-
-class EditCourse(View):
-    def post(self, request):
-        m = retrieveSessionID(request)
-        if m is None or m.userType != "Admin":
-            return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
-        
-        course_id = request.POST.get("course_id")
-        try:
-            course = Class.objects.get(id=course_id)
-            request.session['edit_course_id'] = course_id
-            return redirect('/createcourse/')
-        except Class.DoesNotExist:
-            return render(request, 'viewAllAssignments.html', {"message": "Course not found"})
 
 class DeleteCourse(View):
     def post(self, request):

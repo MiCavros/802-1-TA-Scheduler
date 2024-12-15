@@ -14,39 +14,63 @@
             background-color: #ffc403;
             border: none;
         }
-        .btn-primary {
-            background-color: #003366;
-            border: none;
+        .course-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #004080;
+            color: white;
+            padding: 10px 15px;
             margin-bottom: 10px;
+            border-radius: 5px;
+            cursor: pointer;
         }
-        .btn-primary:hover {
-            background-color: #002244;
-        }
-        .form-control {
-            border-radius: 0;
-        }
-        .header-logo {
-            max-width: 150px;
+        .course-section {
             margin-bottom: 20px;
         }
-        .alert {
-            color: #000000;
+        .assignment-group {
+            padding-left: 15px;
+            display: block;
         }
-        .form-group label {
-            color: #003366;
+        .toggle-indicator::after {
+            content: '▼';
+            font-size: 0.8em;
+            margin-left: 10px;
         }
-        .table-container {
-            background-color: #ffc403;
-            padding: 20px;
+        .collapsed .toggle-indicator::after {
+            content: '▶';
+        }
+        .list-group-item {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .section-info {
+            color: #004080;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+        .schedule-info {
+            margin-top: 10px;
+            background-color: #f8f9fa;
+            padding: 10px;
             border-radius: 5px;
-            margin-top: 20px;
+            width: 100%;
         }
-        .table {
-            background-color: #ffffff;
+        .schedule-item {
+            padding: 5px 0;
+            color: #004080;
+            font-size: 0.9em;
+            border-bottom: 1px solid #eee;
         }
-        .action-buttons {
+        .course-actions {
             display: flex;
-            gap: 5px;
+            gap: 10px;
+        }
+        .section-actions {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
         }
         .btn-edit {
             background-color: #003366;
@@ -56,10 +80,6 @@
             background-color: #dc3545;
             color: white;
         }
-        .card-header {
-            background-color: #003366 !important;
-            color: white !important;
-        }
     </style>
 </head>
 <body>
@@ -67,87 +87,78 @@
         <div class="text-center">
             <h1 class="mt-5">All Courses</h1>
         </div>
-        {% if courses %}
-            <div class="table-container">
-                {% for course in courses %}
-                    <div class="card mb-4">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">{{ course.title }}</h5>
-                            <div class="btn-group">
-                                <form action="/editcourse/" method="post" class="d-inline">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="course_id" value="{{ course.id }}">
-                                    <button type="submit" class="btn btn-sm btn-light">Edit Course</button>
-                                </form>
-                                <form action="/deletecourse/" method="post" class="d-inline ml-2" onsubmit="return confirm('Are you sure you want to delete this course and all its sections?');">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="course_id" value="{{ course.id }}">
-                                    <button type="submit" class="btn btn-sm btn-danger">Delete Course</button>
-                                </form>
+        <div class="card">
+            <div class="card-body">
+                {% if courses %}
+                    {% for course in courses %}
+                        <div class="course-section">
+                            <div class="course-header" onclick="toggleSection('course-{{forloop.counter}}')">
+                                <h4>{{ course.title }}</h4>
+                                <div class="course-actions">
+                                    <form action="/deletecourse/" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this course and all its sections?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="course_id" value="{{ course.id }}">
+                                        <button type="submit" class="btn btn-sm btn-danger">Delete Course</button>
+                                    </form>
+                                    <span class="toggle-indicator"></span>
+                                </div>
+                            </div>
+                            <div id="course-{{forloop.counter}}" class="assignment-group">
+                                <div class="list-group-item">
+                                    <p class="section-info">Description: {{ course.description }}</p>
+                                    <p class="section-info">Location: {{ course.location }}</p>
+                                </div>
+                                {% for section in course.section_set.all %}
+                                    <div class="list-group-item">
+                                        <h5 class="section-info">Section: {{ section.section_name }}</h5>
+                                        <p class="section-info">
+                                            TA: {% if section.TA and section.TA.userType == 'TA' %}
+                                                {{ section.TA.fName }} {{ section.TA.lName }}
+                                            {% else %}
+                                                Unassigned
+                                            {% endif %}
+                                        </p>
+                                        <div class="schedule-info">
+                                            {% with items=section.formatted_schedule|split:"\n" %}
+                                                {% for item in items %}
+                                                    <div class="schedule-item">{{ item }}</div>
+                                                {% endfor %}
+                                            {% endwith %}
+                                        </div>
+                                        <div class="section-actions">
+                                            <form action="/deleteassignment/" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this section?');">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="section_id" value="{{ section.sectionId }}">
+                                                <button type="submit" class="btn btn-sm btn-delete">Delete Section</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                {% endfor %}
                             </div>
                         </div>
-                        <div class="card-body">
-                            <p><strong>Description:</strong> {{ course.description }}</p>
-                            <p><strong>Location:</strong> {{ course.location }}</p>
-                            <h6 class="mt-4">Sections:</h6>
-                            {% if course.section_set.all %}
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Section Name</th>
-                                            <th>TA</th>
-                                            <th>Schedule</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for section in course.section_set.all %}
-                                            <tr>
-                                                <td>{{ section.section_name }}</td>
-                                                <td>
-                                                    {% if section.TA and section.TA.userType == 'TA' %}
-                                                        {{ section.TA.fName }} {{ section.TA.lName }}
-                                                    {% else %}
-                                                        Unassigned
-                                                    {% endif %}
-                                                </td>
-                                                <td>{{ section.formatted_schedule }}</td>
-                                                <td>
-                                                    <div class="action-buttons">
-                                                        <form action="/editassignment/" method="post" class="d-inline">
-                                                            {% csrf_token %}
-                                                            <input type="hidden" name="section_id" value="{{ section.sectionId }}">
-                                                            <button type="submit" class="btn btn-sm btn-edit">Edit</button>
-                                                        </form>
-                                                        <form action="/deleteassignment/" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this section?');">
-                                                            {% csrf_token %}
-                                                            <input type="hidden" name="section_id" value="{{ section.sectionId }}">
-                                                            <button type="submit" class="btn btn-sm btn-delete">Delete</button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            {% else %}
-                                <p class="text-muted">No sections for this course</p>
-                            {% endif %}
-                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info mt-3 text-center">
+                        No courses found.
                     </div>
-                {% endfor %}
+                {% endif %}
             </div>
-        {% else %}
-            <div class="alert alert-info mt-3 text-center">
-                No courses found.
-            </div>
-        {% endif %}
+        </div>
         <div class="text-center mt-3">
             <a href="/home/" class="btn btn-light">Home</a>
         </div>
     </div>
+
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const header = section.previousElementSibling;
+            section.classList.toggle('d-none');
+            header.classList.toggle('collapsed');
+        }
+    </script>
 </body>
 </html>

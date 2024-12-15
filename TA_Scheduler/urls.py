@@ -19,7 +19,7 @@ from django.urls import path
 
 from TA_Scheduler.views import Login, Home, CreateUser, CreateCourse, manageUsers, CreateSection, \
     editContactInfo, editAccount, AssignSection, UpdatePassword, TaViewAssignmentsPage, ReadPublicContactInfoPage, \
-    InstructorViewCourses, AdminViewAllAssignments, EditAssignment, DeleteAssignment, EditCourse, DeleteCourse
+    InstructorViewCourses, AdminViewAllAssignments, DeleteAssignment, DeleteCourse
 from . import views
 
 urlpatterns = [
@@ -40,8 +40,6 @@ urlpatterns = [
     path('readpubliccontactinfo/', ReadPublicContactInfoPage.as_view(), name='read_public_contact_info'),
     path('instructor/viewcourses/', InstructorViewCourses.as_view(), name='Instructor View Courses'),
     path('viewallassignments/', AdminViewAllAssignments.as_view(), name='Admin View All Assignments'),
-    path('editassignment/', EditAssignment.as_view(), name='Edit Assignment'),
     path('deleteassignment/', DeleteAssignment.as_view(), name='Delete Assignment'),
-    path('editcourse/', EditCourse.as_view(), name='Edit Course'),
     path('deletecourse/', DeleteCourse.as_view(), name='Delete Course'),
 ]
