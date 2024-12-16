@@ -7,7 +7,7 @@ from django.template.defaultfilters import register
 
 from .main import retrieveSessionID, pageAuthenticate, loginAuthenticate, retrieveEditUserID, editUser, createSection, \
     addUser
-from .models import User, Class, Section
+from .models import User, Class, Section, Message
 
 @register.filter(name='split')
 def split(value, arg):
@@ -463,6 +463,123 @@ class DeleteCourse(View):
             return redirect('/viewallassignments/')
         except Class.DoesNotExist:
             return render(request, 'viewAllAssignments.html', {"message": "Course not found"})
+
+class NotifyTAs(View):
+    def get(self, request):
+        m = retrieveSessionID(request)
+        if m is None or m.userType not in ["Admin", "Instructor"]:
+            return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
+        
+        tas = User.objects.filter(userType='TA')
+        return render(request, 'notifyTAs.html', {'tas': tas})
+
+    def post(self, request):
+        m = retrieveSessionID(request)
+        if m is None or m.userType not in ["Admin", "Instructor"]:
+            return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
+        
+        selected_tas = request.POST.getlist('selected_tas[]')
+        message_content = request.POST.get('message')
+        
+        if not selected_tas:
+            return render(request, 'notifyTAs.html', {
+                'tas': User.objects.filter(userType='TA'),
+                'error': 'Please select at least one TA'
+            })
+        
+        if not message_content:
+            return render(request, 'notifyTAs.html', {
+                'tas': User.objects.filter(userType='TA'),
+                'error': 'Message cannot be empty'
+            })
+
+        for ta_id in selected_tas:
+            try:
+                ta = User.objects.get(id=ta_id)
+                Message.objects.create(
+                    sender=m,
+                    recipient=ta,
+                    content=message_content
+                )
+            except User.DoesNotExist:
+                continue
+
+        return render(request, 'notifyTAs.html', {
+            'tas': User.objects.filter(userType='TA'),
+            'success': 'Messages sent successfully!'
+        })
+
+class NotifyUsers(View):
+    def get(self, request):
+        m = retrieveSessionID(request)
+        if m is None or m.userType != "Admin":
+            return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
+        
+        users = User.objects.filter(userType__in=['TA', 'Instructor'])
+        return render(request, 'notifyUsers.html', {'users': users})
+
+    def post(self, request):
+        m = retrieveSessionID(request)
+        if m is None or m.userType != "Admin":
+            return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
+        
+        user_type = request.POST.get('user_type')
+        selected_users = request.POST.getlist('selected_users[]')
+        message_content = request.POST.get('message')
+        
+        if not selected_users:
+            return render(request, 'notifyUsers.html', {
+                'users': User.objects.filter(userType__in=['TA', 'Instructor']),
+                'error': 'Please select at least one user'
+            })
+        
+        if not message_content:
+            return render(request, 'notifyUsers.html', {
+                'users': User.objects.filter(userType__in=['TA', 'Instructor']),
+                'error': 'Message cannot be empty'
+            })
+
+        for user_id in selected_users:
+            try:
+                user = User.objects.get(id=user_id)
+                if user_type == 'both' or user.userType == user_type:
+                    Message.objects.create(
+                        sender=m,
+                        recipient=user,
+                        content=message_content
+                    )
+            except User.DoesNotExist:
+                continue
+
+        return render(request, 'notifyUsers.html', {
+            'users': User.objects.filter(userType__in=['TA', 'Instructor']),
+            'success': 'Messages sent successfully!'
+        })
+
+class ViewMessages(View):
+    def get(self, request):
+        m = retrieveSessionID(request)
+        if m is None or m.userType not in ["TA", "Instructor"]:
+            return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
+        
+        messages = Message.objects.filter(recipient=m).order_by('-timestamp')
+        return render(request, 'viewMessages.html', {'messages': messages})
+
+    def post(self, request):
+        m = retrieveSessionID(request)
+        if m is None or m.userType not in ["TA", "Instructor"]:
+            return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
+        
+        message_id = request.POST.get('message_id')
+        if message_id:
+            try:
+                message = Message.objects.get(id=message_id, recipient=m)
+                message.is_read = True
+                message.save()
+            except Message.DoesNotExist:
+                pass
+        
+        return redirect('/viewmessages/')
 
 def addUser(first_name, last_name, midI, userType, email, password):
     User.objects.create(

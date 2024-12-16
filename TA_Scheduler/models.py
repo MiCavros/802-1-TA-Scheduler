@@ -36,3 +36,10 @@ class Section(models.Model):
     TA = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     schedule = models.CharField(max_length=255)
     max_capacity = models.IntegerField()
+
+class Message(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)

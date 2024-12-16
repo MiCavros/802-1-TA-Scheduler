@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Messages - TA Scheduler</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #003366;
+            color: #ffffff;
+        }
+        .card {
+            margin-top: 20px;
+            background-color: #ffc403;
+            border: none;
+        }
+        .message-card {
+            margin-bottom: 15px;
+            background-color: #fff;
+        }
+        .message-header {
+            background-color: #003366;
+            color: #fff;
+            padding: 10px;
+        }
+        .message-body {
+            padding: 15px;
+            color: #000;
+        }
+        .unread {
+            border-left: 5px solid #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="text-center">
+                    <h1 class="mt-3">My Messages</h1>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="message-card {% if not message.is_read %}unread{% endif %}">
+                                    <div class="message-header">
+                                        <strong>From:</strong> {{ message.sender.fName }} {{ message.sender.lName }}
+                                        <small class="float-right">{{ message.timestamp|date:"M d, Y H:i" }}</small>
+                                    </div>
+                                    <div class="message-body">
+                                        {{ message.content }}
+                                        {% if not message.is_read %}
+                                            <form method="post" class="mt-2">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="message_id" value="{{ message.id }}">
+                                                <button type="submit" class="btn btn-sm btn-primary">Mark as Read</button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="alert alert-info">You have no messages.</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="/home/" class="btn btn-light">Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
