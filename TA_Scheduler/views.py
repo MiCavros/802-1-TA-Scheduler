@@ -32,7 +32,7 @@ class Home(View):
 class CreateUser(View):
     def get(self, request):
         m = retrieveSessionID(request)
-        if m is None or pageAuthenticate(m, "Admin"):
+        if m is None or not pageAuthenticate(m, "Admin"):
             return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page", "userType": m.userType if m else "Guest"})
         return render(request, 'createUser.html', {"message": "", "userType": m.userType})
 
