@@ -25,8 +25,9 @@ def loginAuthenticate(request, email, password):
     if email == "" or password == "":
         return render(request, "login.html", {"message": "Email and/or Password cannot be blank"})
     try:
-        user = User.objects.get(email=request.POST['email'].lower())
-        badPassword = (user.password != request.POST['password'])
+        print(email)
+        user = User.objects.get(email=email.lower())
+        badPassword = (user.password != password)
     except:
         noUser = True
 
@@ -54,6 +55,13 @@ def retrieveSessionID(request):
     #Add User
 def addUser(first_name, last_name, midI, userType, email, password):
     return User.objects.create(fName=first_name, lName=last_name, MidInit=midI, email=email, password=password, userType=userType)
+def UserAlreadyExists(request, email):
+    noUser = False
+    try:
+        user = User.objects.get(email=email.lower())
+    except User.DoesNotExist:
+        noUser = True
+    return noUser
 
     #Edit User
 def retrieveEditUserID(request):

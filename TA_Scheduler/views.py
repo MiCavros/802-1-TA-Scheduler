@@ -6,7 +6,7 @@ from django.db.models import Q, Prefetch
 from django.template.defaultfilters import register
 
 from .main import retrieveSessionID, pageAuthenticate, loginAuthenticate, retrieveEditUserID, editUser, createSection, \
-    addUser
+    addUser, UserAlreadyExists
 from .models import User, Class, Section
 
 @register.filter(name='split')
@@ -42,7 +42,7 @@ class CreateUser(View):
             return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
         userID = request.session["email"]
         m = User.objects.get(email=userID)
-        noUser = False
+
 
         if request.POST['email'] == "":
             return render(request, "createUser.html", {"message": "Email is a required field", "userType": m.userType})
@@ -52,12 +52,9 @@ class CreateUser(View):
             return render(request, "createUser.html", {"message": "Role is a required field", "userType": m.userType})
         if "@uwm.edu" not in request.POST['email']:
             return render(request, "createUser.html", {"message": "Must use valid UWM.edu email"})
-        try:
-            user = User.objects.get(email=request.POST['email'].lower())
-        except User.DoesNotExist:
-            noUser = True
-        if not noUser:
-            return render(request, "createUser.html", {"message": "There is already a user with that email"})
+
+        if UserAlreadyExists(request.POST['email']):
+            render(request, "createUser.html", {"message": "There is already a user with that email"})
 
         addUser(request.POST['fName'].lower(), request.POST['lName'].lower(), request.POST['midI'].lower(), request.POST['role'], request.POST['email'].lower(), request.POST['password'])
         return render(request, 'createUser.html', {"message": "User Created Successfully", "userType": m.userType})
