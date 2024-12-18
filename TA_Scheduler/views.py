@@ -581,6 +581,25 @@ class ViewMessages(View):
         
         return redirect('/viewmessages/')
 
+class AccessData(View):
+    def get(self, request):
+        m = retrieveSessionID(request)
+        if m is None or m.userType != "Admin":
+            return render(request, 'userNoAccess.html', {"message": "User Cannot Access This Page"})
+        
+        context = {
+            'course_count': Class.objects.count(),
+            'section_count': Section.objects.count(),
+            'total_users': User.objects.count(),
+            'admin_count': User.objects.filter(userType='Admin').count(),
+            'instructor_count': User.objects.filter(userType='Instructor').count(),
+            'ta_count': User.objects.filter(userType='TA').count(),
+            'assigned_sections': Section.objects.exclude(TA=None).count(),
+            'message_count': Message.objects.count(),
+        }
+        
+        return render(request, 'accessData.html', context)
+
 def addUser(first_name, last_name, midI, userType, email, password):
     User.objects.create(
         fName=first_name or "First",

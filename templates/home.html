@@ -90,6 +90,11 @@
             <li class="nav-item">
                 <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab">Contact</a>
             </li>
+            {% if user.userType == "Admin" %}
+            <li class="nav-item">
+                <a class="nav-link" id="data-tab" data-toggle="tab" href="#data" role="tab">Data</a>
+            </li>
+            {% endif %}
         </ul>
 
         <!-- Tab Content -->
@@ -162,6 +167,19 @@
                     </div>
                 </div>
             </div>
+            
+            {% if user.userType == "Admin" %}
+            <!-- Data Tab -->
+            <div class="tab-pane fade" id="data" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <div class="list-group">
+                            <a href="/accessdata/" class="list-group-item list-group-item-action">Access Data</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         {% if message %}
