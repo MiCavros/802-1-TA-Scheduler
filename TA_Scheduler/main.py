@@ -5,6 +5,10 @@ from django.shortcuts import render, redirect
 ##Authentication:
 
 def pageAuthenticate(user, pageType):
+    if not user or not user.userType:
+        return False
+    if pageType != "Admin" and pageType != "Instructor" and pageType != "TA":
+        return False
     if pageType == "Admin":
         if user.userType == "Admin":
             return True
@@ -18,12 +22,12 @@ def pageAuthenticate(user, pageType):
     if pageType == "TA":
         return True
 
-def loginAuthenticate(request, email, password):
+def loginAuthenticate(email, password):
     noUser = False
     badPassword = False
     blankEntry = False
     if email == "" or password == "":
-        return render(request, "login.html", {"message": "Email and/or Password cannot be blank"})
+        return 0
     try:
         print(email)
         user = User.objects.get(email=email.lower())
@@ -32,12 +36,11 @@ def loginAuthenticate(request, email, password):
         noUser = True
 
     if noUser:
-        return render(request, "login.html", {"message": "No User with this Email"})
+        return 1
     elif badPassword:
-        return render(request, "login.html", {"message": "Incorrect Password"})
+        return 2
     else:
-        request.session["email"] = user.email
-        return redirect("/home/")
+        return 3
 
 
 def retrieveSessionID(request):
@@ -52,6 +55,12 @@ def retrieveSessionID(request):
 
 
 ##Users
+def getUser(email):
+    try:
+        user = User.objects.get(email=email.lower())
+    except User.DoesNotExist:
+        return None
+    return user
     #Add User
 def addUser(first_name, last_name, midI, userType, email, password):
     return User.objects.create(fName=first_name, lName=last_name, MidInit=midI, email=email, password=password, userType=userType)

@@ -6,7 +6,7 @@ from django.db.models import Q, Prefetch
 from django.template.defaultfilters import register
 
 from .main import retrieveSessionID, pageAuthenticate, loginAuthenticate, retrieveEditUserID, editUser, createSection, \
-    addUser
+    addUser, getUser
 from .models import User, Class, Section, Message
 
 @register.filter(name='split')
@@ -19,7 +19,19 @@ class Login(View):
     def post(self, request):
         password = request.POST['password']
         email = request.POST['email']
-        return loginAuthenticate(request, email, password)
+        loginStatus = loginAuthenticate(email, password)
+
+        if loginStatus == 0:
+            return render(request, "login.html", {"message": "Email and/or Password cannot be blank"})
+        elif loginStatus == 1:
+            return render(request, "login.html", {"message": "No User with this Email"})
+        elif loginStatus == 2:
+            return render(request, "login.html", {"message": "Incorrect Password"})
+        elif loginStatus == 3:
+            request.session["email"] = email.lower()
+            print(1)
+            return redirect('/home/')
+
 
 
 class Home(View):
