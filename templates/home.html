@@ -85,8 +85,16 @@
                 <a class="nav-link {% if user.userType != 'Admin' %}active{% endif %}" id="courses-tab" data-toggle="tab" href="#courses" role="tab">Courses/Sections</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="account-tab" data-toggle="tab" href="#account" role="tab">Account/Contact</a>
+                <a class="nav-link" id="account-tab" data-toggle="tab" href="#account" role="tab">Account</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab">Contact</a>
+            </li>
+            {% if user.userType == "Admin" %}
+            <li class="nav-item">
+                <a class="nav-link" id="data-tab" data-toggle="tab" href="#data" role="tab">Data</a>
+            </li>
+            {% endif %}
         </ul>
 
         <!-- Tab Content -->
@@ -129,22 +137,49 @@
                 </div>
             </div>
 
-            <!-- Account/Contact Tab -->
+            <!-- Account Tab -->
             <div class="tab-pane fade" id="account" role="tabpanel">
                 <div class="card mt-3">
                     <div class="card-body">
                         <div class="list-group">
                             <a href="/editaccount/" class="list-group-item list-group-item-action">Edit Account</a>
-                            <a href="/editcontactinfo/" class="list-group-item list-group-item-action">Edit Contact Info</a>
-                            <a href="/readpubliccontactinfo/" class="list-group-item list-group-item-action">View Public Contact Info</a>
-                            {% if user.userType == "Instructor" %}
-                                <a href="/notifytas/" class="list-group-item list-group-item-action">Notify TAs</a>
-                            {% endif %}
                             <a href="/" class="list-group-item list-group-item-action">Logout</a>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Contact Tab -->
+            <div class="tab-pane fade" id="contact" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <div class="list-group">
+                            <a href="/editcontactinfo/" class="list-group-item list-group-item-action">Edit Contact Info</a>
+                            <a href="/readpubliccontactinfo/" class="list-group-item list-group-item-action">View Public Contact Info</a>
+                            {% if user.userType == "Instructor" %}
+                                <a href="/notifytas/" class="list-group-item list-group-item-action">Notify TAs</a>
+                                <a href="/viewmessages/" class="list-group-item list-group-item-action">View Messages</a>
+                            {% endif %}
+                            {% if user.userType == "TA" %}
+                                <a href="/viewmessages/" class="list-group-item list-group-item-action">View Messages</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if user.userType == "Admin" %}
+            <!-- Data Tab -->
+            <div class="tab-pane fade" id="data" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <div class="list-group">
+                            <a href="/accessdata/" class="list-group-item list-group-item-action">Access Data</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         {% if message %}

@@ -19,8 +19,8 @@ from django.urls import path
 
 from TA_Scheduler.views import Login, Home, CreateUser, CreateCourse, manageUsers, CreateSection, \
     editContactInfo, editAccount, AssignSection, UpdatePassword, TaViewAssignmentsPage, ReadPublicContactInfoPage, \
-    InstructorViewCourses, AdminViewAllAssignments, DeleteAssignment, DeleteCourse
-from . import views
+    InstructorViewCourses, AdminViewAllAssignments, DeleteAssignment, DeleteCourse, NotifyTAs, ViewMessages, \
+    NotifyUsers, AccessData
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -42,4 +42,8 @@ urlpatterns = [
     path('viewallassignments/', AdminViewAllAssignments.as_view(), name='Admin View All Assignments'),
     path('deleteassignment/', DeleteAssignment.as_view(), name='Delete Assignment'),
     path('deletecourse/', DeleteCourse.as_view(), name='Delete Course'),
+    path('notifytas/', NotifyTAs.as_view(), name='notify_tas'),
+    path('viewmessages/', ViewMessages.as_view(), name='view_messages'),
+    path('notifyusers/', NotifyUsers.as_view(), name='notify_users'),
+    path('accessdata/', AccessData.as_view(), name='access_data'),
 ]
