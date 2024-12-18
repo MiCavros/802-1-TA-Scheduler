@@ -1,11 +1,13 @@
+from django.test import TestCase
+
 from TA_Scheduler.main import addUser, retrieveEditUserID, editUser, deleteUser
-from models import User
+from TA_Scheduler.models import User
 import unittest
 
-class TestAddUser(unittest.TestCase):
+class TestAddUser(TestCase):
     def test_addUser(self):
         test_user = addUser("John", "Doe", "J", "TA", "test@uwm.edu", "testpassword")
-        self.assertEqual(User.objects.get(email="test@uwm.edu"), test_user.email)
+        self.assertEqual(User.objects.get(email="test@uwm.edu"), test_user)
 
 class TestRetrieveEditUser(unittest.TestCase):
     def test_retrieveEditUserID(self):
