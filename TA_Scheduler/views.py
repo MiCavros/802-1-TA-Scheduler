@@ -6,7 +6,7 @@ from django.db.models import Q, Prefetch
 from django.template.defaultfilters import register
 
 from .main import retrieveSessionID, pageAuthenticate, loginAuthenticate, retrieveEditUserID, editUser, createSection, \
-    addUser, getUser
+    addUser, getUser, UserAlreadyExists
 from .models import User, Class, Section, Message
 
 @register.filter(name='split')
@@ -65,7 +65,7 @@ class CreateUser(View):
         if "@uwm.edu" not in request.POST['email']:
             return render(request, "createUser.html", {"message": "Must use valid UWM.edu email"})
 
-        if UserAlreadyExists(request.POST['email']):
+        if UserAlreadyExists(request, request.POST['email']):
             render(request, "createUser.html", {"message": "There is already a user with that email"})
 
         addUser(request.POST['fName'].lower(), request.POST['lName'].lower(), request.POST['midI'].lower(), request.POST['role'], request.POST['email'].lower(), request.POST['password'])
