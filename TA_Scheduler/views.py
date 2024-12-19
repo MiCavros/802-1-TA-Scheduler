@@ -613,9 +613,13 @@ def addUser(first_name, last_name, midI, userType, email, password):
 
 def createSection(request, section_name, schedule, course_id, max_capacity, ta_id):
     course = Class.objects.get(id=course_id)
+    ta = None
+    if ta_id:
+        ta = User.objects.get(id=ta_id)
     Section.objects.create(
         section_name=section_name,
         classId=course,
+        TA=ta,
         schedule=schedule,
         max_capacity=int(max_capacity)
     )
