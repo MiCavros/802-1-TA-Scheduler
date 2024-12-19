@@ -125,6 +125,8 @@ def createCourse(title, description, schedule, location):
 
 ##Sections
 def createSection( section_name, schedule, course_id, max_capacity, ta_id=None):
+    if not schedule or not section_name or not max_capacity or not course_id:
+        return False
     course = Class.objects.get(id=course_id)
     ta = None
     if ta_id:
