@@ -90,7 +90,6 @@ class CreateCourse(View):
         start_time = request.POST.get('start_time')
         end_time = request.POST.get('end_time')
         days = request.POST.getlist('days[]')
-        assignments = request.POST.get('assignments', '').strip()
         instructor_id = request.POST.get('instructor_id')
         location = request.POST.get('location', '').strip()
 
@@ -125,7 +124,6 @@ class CreateCourse(View):
                 'errors': errors,
                 'title': title,
                 'description': description,
-                'assignments': assignments,
                 'instructors': instructors,
                 'start_date': start_date,
                 'end_date': end_date,
@@ -140,7 +138,6 @@ class CreateCourse(View):
             title=title,
             description=description,
             schedule=schedule,
-            assignments=assignments,
             location=location
         )
 
@@ -155,10 +152,10 @@ class CreateSection(View):
         if m is None:
             return redirect('/login/')
         courses = Class.objects.all()
-        instructors = User.objects.filter(userType='Instructor')
+        tas = User.objects.filter(userType='TA')
         return render(request, 'createSection.html', {
             'courses': courses,
-            'instructors': instructors
+            'tas': tas
         })
 
     def post(self, request):
@@ -166,23 +163,22 @@ class CreateSection(View):
         if m is None:
             return redirect('/login/')
         section_name = request.POST.get("section_name")
-        instructor_id = request.POST.get("instructor_id")
         course_id = request.POST.get("course_id")
         max_capacity = request.POST.get("max_capacity")
-        
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')
         start_time = request.POST.get('start_time')
         end_time = request.POST.get('end_time')
         days = request.POST.getlist('days[]')
+        ta_id = request.POST.get("ta_id")
 
         errors = []
         context = {
             'courses': Class.objects.all(),
-            'instructors': User.objects.filter(userType='Instructor')
+            'tas': User.objects.filter(userType='TA')
         }
 
-        if not all([section_name, instructor_id, course_id, max_capacity]):
+        if not all([section_name, course_id, max_capacity]):
             errors.append("All fields are required")
         if not all(char.isalnum() or char.isspace() for char in section_name):
             errors.append("Section Name can only contain letters, numbers, and spaces")
@@ -210,7 +206,7 @@ class CreateSection(View):
             context['message'] = "\n".join(errors)
             return render(request, "createSection.html", context)
 
-        createSection(request, section_name, instructor_id, schedule, course_id, max_capacity)
+        createSection(request, section_name, schedule, course_id, max_capacity, ta_id)
         context['message'] = "Section Created Successfully"
         return render(request, "createSection.html", context)
 
@@ -619,13 +615,11 @@ def addUser(first_name, last_name, midI, userType, email, password):
         userType=userType or "User"
     )
 
-def createSection(request, section_name, instructor_id, schedule, course_id, max_capacity):
-    instructor = User.objects.get(id=instructor_id)
+def createSection(request, section_name, schedule, course_id, max_capacity, ta_id):
     course = Class.objects.get(id=course_id)
     Section.objects.create(
         section_name=section_name,
         classId=course,
-        TA=instructor,
         schedule=schedule,
         max_capacity=int(max_capacity)
     )
