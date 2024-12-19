@@ -194,10 +194,10 @@ class createUserTest(TestCase):
 
     def test_createUserSuccessfully(self):
         self.client.post("/", {"email": "testadminuser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.post("/createuser/", {"role": "TA", "email": "newTestUser@uwm.edu", "password": "4444",  "fName" : "Test", "midI" : "T", "lName" : "User"}, follow=True)
+        resp = self.client.post("/createuser/", {"role": "TA", "email": "newnewTestUser@uwm.edu", "password": "4444",  "fName" : "Test", "midI" : "T", "lName" : "User"}, follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["message"], "User Created Successfully")
-        newUser = User.objects.get(email="newtestuser@uwm.edu")
+        newUser = User.objects.get(email="newnewtestuser@uwm.edu")
         self.assertEqual(newUser.userType, "TA")
         self.assertEqual(newUser.password, "4444")
 

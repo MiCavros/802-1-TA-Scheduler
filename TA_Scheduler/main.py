@@ -65,11 +65,14 @@ def getUser(email):
 def addUser(first_name, last_name, midI, userType, email, password):
     return User.objects.create(fName=first_name, lName=last_name, MidInit=midI, email=email, password=password, userType=userType)
 def UserAlreadyExists(request, email):
-    noUser = False
+    noUser = True
     try:
         user = User.objects.get(email=email.lower())
     except User.DoesNotExist:
-        noUser = True
+        noUser = False
+
+    print(email)
+    print(noUser)
     return noUser
 
     #Edit User

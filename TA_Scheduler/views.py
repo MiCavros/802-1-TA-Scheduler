@@ -66,7 +66,7 @@ class CreateUser(View):
             return render(request, "createUser.html", {"message": "Must use valid UWM.edu email"})
 
         if UserAlreadyExists(request, request.POST['email']):
-            render(request, "createUser.html", {"message": "There is already a user with that email"})
+            return render(request, "createUser.html", {"message": "There is already a user with that email"})
 
         addUser(request.POST['fName'].lower(), request.POST['lName'].lower(), request.POST['midI'].lower(), request.POST['role'], request.POST['email'].lower(), request.POST['password'])
         return render(request, 'createUser.html', {"message": "User Created Successfully", "userType": m.userType})
