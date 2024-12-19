@@ -6,7 +6,7 @@ from django.db.models import Q, Prefetch
 from django.template.defaultfilters import register
 
 from .main import retrieveSessionID, pageAuthenticate, loginAuthenticate, retrieveEditUserID, editUser, createSection, \
-    addUser, getUser, UserAlreadyExists
+    addUser, getUser, UserAlreadyExists, createCourse
 from .models import User, Class, Section, Message
 
 @register.filter(name='split')
@@ -134,12 +134,8 @@ class CreateCourse(View):
             }
             return render(request, 'createCourse.html', context)
 
-        new_course = Class.objects.create(
-            title=title,
-            description=description,
-            schedule=schedule,
-            location=location
-        )
+
+        createCourse(title, description, schedule, location)
 
         return render(request, 'createCourse.html', {
             'message': "Course created successfully!",

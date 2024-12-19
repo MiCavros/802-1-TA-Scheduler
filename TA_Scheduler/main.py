@@ -108,9 +108,23 @@ def deleteUser(request, email, Users):
         return render(request, "manageUsers.html", {"message": "User deleted successfully", "users": Users})
     except User.DoesNotExist:
         return render(request, "manageUsers.html", {"message": "User does not exist", "users": Users})
+##Courses
+def createCourse(title, description, schedule, location):
+    if not title or not description or not schedule or not location:
+        return False
+
+
+    new_course = Class.objects.create(
+    title=title,
+    description=description,
+    schedule=schedule,
+    location=location
+
+    )
+    return new_course
 
 ##Sections
-def createSection(request, section_name, schedule, course_id, max_capacity, ta_id=None):
+def createSection( section_name, schedule, course_id, max_capacity, ta_id=None):
     course = Class.objects.get(id=course_id)
     ta = None
     if ta_id:
