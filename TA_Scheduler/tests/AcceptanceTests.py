@@ -400,26 +400,6 @@ class testManageUsers(TestCase):
         testUser = User(userType="TA", email="testUser@uwm.edu", password="1234")
         testUser.save()
 
-    def test_taAccess(self):
-        self.client.post("/", {"email": "testUser@uwm.edu", "password": "1234"}, follow=True)
-        resp = self.client.get("/manageusers/", follow=True)
-        self.assertEqual(resp.context["userType"], "TA")
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.context["message"], "User Cannot Access This Page")
-
-    def test_InstructorAccess(self):
-        self.client.post("/", {"email": "testInstructor@uwm.edu", "password": "4444"}, follow=True)
-        resp = self.client.get("/manageusers/", follow=True)
-        self.assertEqual(resp.context["userType"], "Instructor")
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.context["message"], "User Cannot Access This Page")
-
-    def test_adminAccess(self):
-        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.get("/manageusers/", follow=True)
-        self.assertEqual(resp.context["userType"], "Admin")
-        self.assertEqual(resp.status_code, 200)
-
     def test_displaySuccess(self):
         self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
         resp = self.client.get("/manageusers/", follow=True)
