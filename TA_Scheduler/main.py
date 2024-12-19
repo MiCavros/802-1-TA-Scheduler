@@ -63,6 +63,8 @@ def getUser(email):
     return user
     #Add User
 def addUser(first_name, last_name, midI, userType, email, password):
+    if email == "" or password == "" or userType == "":
+        return False
     return User.objects.create(fName=first_name, lName=last_name, MidInit=midI, email=email, password=password, userType=userType)
 def UserAlreadyExists(request, email):
     noUser = True
@@ -86,15 +88,22 @@ def retrieveEditUserID(request):
 
 def editUser(user, first_name, last_name, email, password):
     j = User.objects.get(email=user.email)
+    if j.password == password:
+        return False
+    if "@uwm.edu" not in email:
+        return False
+    if not first_name or not last_name or not password:
+        return False
+
     j.fName = first_name
     j.lName = last_name
     j.email = email
     j.password = password
     j.save()
 
-def deleteUser(request, d, Users):
+def deleteUser(request, email, Users):
     try:
-        user = User.objects.get(id=d)
+        user = User.objects.get(email)
         user.delete()
         return render(request, "manageUsers.html", {"message": "User deleted successfully", "users": Users})
     except User.DoesNotExist:
