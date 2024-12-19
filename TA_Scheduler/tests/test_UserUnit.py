@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from TA_Scheduler.main import addUser, retrieveEditUserID, editUser, deleteUser
+from TA_Scheduler.main import addUser, retrieveEditUserID, editUser, deleteUser, editContactInfo
 from TA_Scheduler.models import User
 import unittest
 
@@ -34,6 +34,28 @@ class TestEditUser(TestCase):
         test_user = addUser("John", "Doe", "J", "TA", "test@uwm.edu", "testpassword")
         self.assertEqual(editUser(test_user, "", "", "test2@uwm.edu", "testpassword"), False)
 
+class testEditContact(TestCase):
+    def test_editPhone(self):
+        test_user = addUser("John", "Doe", "J", "TA", "test@uwm.edu", "testpassword")
+        editContactInfo(test_user, "4142222222", "Address")
+        self.assertEqual(test_user.phone, "4142222222")
+
+    def test_editAddress(self):
+        test_user = addUser("John", "Doe", "J", "TA", "test@uwm.edu", "testpassword")
+        editContactInfo(test_user, "4142222222", "Address")
+        self.assertEqual(test_user.address, "Address")
+
+    def test_removePhone(self):
+        test_user = addUser("John", "Doe", "J", "TA", "test@uwm.edu", "testpassword")
+        editContactInfo(test_user, "4142222222", "Address")
+        editContactInfo(test_user, "", "Address")
+        self.assertEqual(test_user.phone, "")
+
+    def test_removePhone(self):
+        test_user = addUser("John", "Doe", "J", "TA", "test@uwm.edu", "testpassword")
+        editContactInfo(test_user, "4142222222", "Address")
+        editContactInfo(test_user, "", "Address")
+        self.assertEqual(test_user.phone, "")
 
 #class TestDeleteUser(TestCase):
 #    def test_deleteUser(self):

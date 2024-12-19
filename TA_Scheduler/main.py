@@ -85,6 +85,13 @@ def retrieveEditUserID(request):
     except:
         editUser = User.objects.get(email=request.session['email'])
     return editUser
+def editContactInfo(user, phone, address):
+
+
+    user.phone = phone
+    user.address = address
+    user.save()
+
 
 def editUser(user, first_name, last_name, email, password):
     j = User.objects.get(email=user.email)
