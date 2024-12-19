@@ -98,14 +98,16 @@ def deleteUser(request, d, Users):
         return render(request, "manageUsers.html", {"message": "User does not exist", "users": Users})
 
 ##Sections
-def createSection(request, section_name, instructor_id, schedule, course_id, max_capacity):
-    instructor = User.objects.get(id=instructor_id)
+def createSection(request, section_name, schedule, course_id, max_capacity, ta_id=None):
     course = Class.objects.get(id=course_id)
+    ta = None
+    if ta_id:
+        ta = User.objects.get(id=ta_id)
+        
     Section.objects.create(
-        sectionId=Section.objects.count() + 1,
         section_name=section_name,
         classId=course,
-        TA=instructor,
+        TA=ta,
         schedule=schedule,
         max_capacity=int(max_capacity)
     )

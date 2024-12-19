@@ -78,11 +78,11 @@
                                             <input type="text" class="form-control" id="section_name" name="section_name" placeholder="Enter section name" required>
                                         </div>
                                         <div class="form-group">
-                                            <label for="instructor">Assign Instructor</label>
-                                            <select class="form-control" id="instructor" name="instructor_id" required>
-                                                <option value="" disabled selected>Select an instructor</option>
-                                                {% for instructor in instructors %}
-                                                    <option value="{{ instructor.id }}">{{ instructor.fName }} {{ instructor.lName }}</option>
+                                            <label for="ta">Assign TA</label>
+                                            <select class="form-control" id="ta" name="ta_id">
+                                                <option value="" selected>Select a TA (Optional)</option>
+                                                {% for ta in tas %}
+                                                    <option value="{{ ta.id }}">{{ ta.fName }} {{ ta.lName }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
