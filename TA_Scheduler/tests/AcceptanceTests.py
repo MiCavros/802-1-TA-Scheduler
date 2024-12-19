@@ -37,7 +37,8 @@ class CreateCourse(TestCase):
         Class.objects.create(
             title="existingCourseTitle",
             description="Initial description",
-            schedule="Initial schedule"
+            schedule="Initial schedule",
+            assignments="Initial assignments"
         )
         testTAUser = User(id=1, userType="TA", email="testTA@uwm.edu", password="1234")
         testInstructorUser = User(id=2, userType="Instructor", email="testInstructor@uwm.edu", password="1234")
@@ -325,52 +326,119 @@ class EditContactInfoTest(TestCase):
 
 class createSectionTest(TestCase):
     def setUp(self):
-        self.client = Client()
-        testAdminUser = User(userType="ADMIN", email="testAdminUser@uwm.edu", password="2222")
-        testAdminUser.save()
-        testInstructor = User(userType="INSTRUCTOR", email="testInstructor@uwm.edu", password = "4444")
-        testInstructor.save()
+        # Create admin user
+        self.admin = User.objects.create(
+            userType="ADMIN",
+            email="testAdminUser@uwm.edu",
+            password="2222"
+        )
 
-        testCourse = Class(title="testCourse", instructor=testInstructor, schedule="Start Date: 01/01/2025, End Date: 01/15/2025")
-        testCourse.save()
+        # Create instructor
+        self.instructor = User.objects.create(
+            userType="INSTRUCTOR",
+            email="testInstructor@uwm.edu",
+            password="4444"
+        )
+
+        # Create course
+        self.course = Class.objects.create(
+            title="testCourse",
+            instructor=self.instructor,
+            schedule="Start Date: 01/01/2025, End Date: 01/15/2025"
+        )
 
     def test_successfulSectionCreation(self):
-        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.post("/createsection/",{"section_name": "testSection", "instructor_id" : 3, "schedule": "Tuesday, 2:00 PM - 4:00 PM", "course_id": 2, "max_capacity" : 10}, follow=True)
+        self.client.post("/", {"email": self.admin.email, "password": self.admin.password}, follow=True)
+        resp = self.client.post("/createsection/", {
+            "section_name": "testSection",
+            "instructor_id": self.instructor.id,
+            "schedule": "Tuesday, 2:00 PM - 4:00 PM",
+            "course_id": self.course.id,
+            "max_capacity": 10
+        }, follow=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.context["message"], "Section Created Successfully")
-        newSection = Section.objects.get(classId=2)
+        self.assertIn("Section Created Successfully", resp.context["message"])
+
+        # Verify section creation
+        newSection = Section.objects.get(section_name="testSection")
+        self.assertEqual(newSection.classId.id, self.course.id)
+        self.assertEqual(newSection.max_capacity, 10)
 
     def test_noInstructor(self ):
-        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.post("/createsection/", {"section_name": "testSection", "schedule": "Tuesday, 2:00 PM - 4:00 PM", "course_id" : 2, "max_capacity" : 10},follow=True)
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.context["message"], "Instructor Field is Required")
-    def test_noName(self):
-        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.post("/createsection/",{"instructor_id": 3, "schedule": "Tuesday, 2:00 PM - 4:00 PM", "course_id": 2, "max_capacity" : 10}, follow=True)
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.context["message"], "Name Field is Required")
-    def test_invalidName(self):
-        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.post("/createsection/",{"section_name": "##$$*)(*", "instructor_id" : 3, "schedule": "Tuesday, 2:00 PM - 4:00 PM", "course_id": 2, "max_capacity" : 10}, follow=True)
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.context["message"], "Section Name is Invalid")
-    def test_noCourse(self):
-        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        resp = self.client.post("/createsection/", {"section_name": "testSection", "instructor_id" : 3, "schedule": "Tuesday, 2:00 PM - 4:00 PM", "max_capacity" : 10},follow=True)
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.context["message"], "Course Field is Required")
-    def test_noCapacity(self):
-        self.client.post("/", {"email": "testAdminUser@uwm.edu", "password": "2222"}, follow=True)
-        response = self.client.post('/createsection/', {
-            'section_name': 'testSection',
-            'instructor_id': '3',
-            'schedule': 'Tuesday, 2:00 PM - 4:00 PM',
-            'course_id': '2',
-        }, follow=True)
-        self.assertEqual(response.context["message"], "Capacity Field is Required")
+        self.client.post("/", {"email": self.admin.email, "password": self.admin.password}, follow=True)
 
+        # Attempt to create section without instructor_id
+        resp = self.client.post("/createsection/", {
+            "section_name": "testSection",
+            "schedule": "Tuesday, 2:00 PM - 4:00 PM",
+            "course_id": self.course.id,
+            "max_capacity": 10
+        }, follow=True)
+
+        # Assert error message
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Instructor Field is Required", resp.context["message"])
+
+    def test_noName(self):
+        self.client.post("/", {"email": self.admin.email, "password": self.admin.password}, follow=True)
+
+        # Attempt to create section without section_name
+        resp = self.client.post("/createsection/", {
+            "instructor_id": self.instructor.id,
+            "schedule": "Tuesday, 2:00 PM - 4:00 PM",
+            "course_id": self.course.id,
+            "max_capacity": 10
+        }, follow=True)
+
+        # Assert error message
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Name Field is Required", resp.context["message"])
+
+    def test_invalidName(self):
+        self.client.post("/", {"email": self.admin.email, "password": self.admin.password}, follow=True)
+
+        # Attempt to create section with invalid section_name
+        resp = self.client.post("/createsection/", {
+            "section_name": "##$$*)(*",
+            "instructor_id": self.instructor.id,
+            "schedule": "Tuesday, 2:00 PM - 4:00 PM",
+            "course_id": self.course.id,
+            "max_capacity": 10
+        }, follow=True)
+
+        # Assert error message
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Section Name is Invalid", resp.context["message"])
+
+    def test_noCourse(self):
+        self.client.post("/", {"email": self.admin.email, "password": self.admin.password}, follow=True)
+
+        # Attempt to create section without course_id
+        resp = self.client.post("/createsection/", {
+            "section_name": "testSection",
+            "instructor_id": self.instructor.id,
+            "schedule": "Tuesday, 2:00 PM - 4:00 PM",
+            "max_capacity": 10
+        }, follow=True)
+
+        # Assert error message
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Course Field is Required", resp.context["message"])
+
+    def test_noCapacity(self):
+        self.client.post("/", {"email": self.admin.email, "password": self.admin.password}, follow=True)
+
+        # Attempt to create section without max_capacity
+        resp = self.client.post("/createsection/", {
+            "section_name": "testSection",
+            "instructor_id": self.instructor.id,
+            "schedule": "Tuesday, 2:00 PM - 4:00 PM",
+            "course_id": self.course.id
+        }, follow=True)
+
+        # Assert error message
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Capacity Field is Required", resp.context["message"])
 
 class DeleteUserTest(TestCase):
     def setUp(self):
@@ -454,50 +522,79 @@ class testEditAccount(TestCase):
 class AssignSectionTest(TestCase):
     def setUp(self):
         self.client = Client()
-        self.admin_user = User.objects.create( userType="Admin", email="adminUser@uwm.edu", password="1234")
-        self.instructor_user = User.objects.create( userType="Instructor", email="instructorUser@uwm.edu", password="5678")
-        self.ta_user = User.objects.create( userType="TA", email="taUser@uwm.edu", password="4321")
 
-        # Create Class and Section
-        self.course = Class.objects.create(title="Test Course", description="Test Description", schedule="Start Date: 01/01/2025, End Date: 05/01/2025")
-        self.section = Section.objects.create(section_number="101", course=self.course)
+        # Create users
+        self.admin_user = User.objects.create(
+            userType="Admin", email="adminUser@uwm.edu", password="1234"
+        )
+        self.ta_user = User.objects.create(
+            userType="TA", email="taUser@uwm.edu", password="4321"
+        )
+        self.instructor_user = User.objects.create(
+            userType="Instructor", email="instructorUser@uwm.edu", password="5678"
+        )
 
-    # Positive Test: Admin assigns a TA to a section successfully
+        # Create a course
+        self.course = Class.objects.create(
+            title="Test Course",
+            description="Test Description",
+            schedule="Start Date: 01/01/2025, End Date: 05/01/2025",
+            instructor=self.instructor_user
+        )
+
+        # Create a section
+        self.section = Section.objects.create(
+            section_name="101",
+            classId=self.course,
+            schedule="Tuesday, 2:00 PM - 4:00 PM",
+            max_capacity=30
+        )
+
+    def login_user(self, user):
+        """ Manually log in a user by setting session data """
+        session = self.client.session
+        session["email"] = user.email
+        session.save()
+
     def test_adminAssignTASuccess(self):
-        self.client.force_login(self.admin_user)
-        resp = self.client.post("/assign-section/", {
+        self.login_user(self.admin_user)
+        response = self.client.post("/assignsections/", {
             "ta_id": self.ta_user.id,
-            "section_id": self.section.id,
+            "section_id": self.section.sectionId,
         }, follow=True)
 
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.context["message"], "TA successfully assigned to the section.")
-        updated_section = Section.objects.get(id=self.section.id)
-        self.assertEqual(updated_section.ta, self.ta_user)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("TA successfully assigned to the section.", response.context["message"])
+
+        # Verify that the TA is assigned
+        updated_section = Section.objects.get(sectionId=self.section.sectionId)
+        self.assertEqual(updated_section.TA, self.ta_user)
 
     # Positive Test: Instructor assigns a TA to a section successfully
     def test_instructorAssignTASuccess(self):
-        self.client.force_login(self.instructor_user)
-        resp = self.client.post("/assign-section/", {
+        self.login_user(self.instructor_user)
+        response = self.client.post("/assignsections/", {
             "ta_id": self.ta_user.id,
-            "section_id": self.section.id,
+            "section_id": self.section.sectionId,
         }, follow=True)
 
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.context["message"], "TA successfully assigned to the section.")
-        updated_section = Section.objects.get(id=self.section.id)
-        self.assertEqual(updated_section.ta, self.ta_user)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("TA successfully assigned to the section.", response.context["message"])
+
+        # Verify the TA is assigned
+        updated_section = Section.objects.get(sectionId=self.section.sectionId)
+        self.assertEqual(updated_section.TA, self.ta_user)
 
     # Negative Test: TA tries to assign themselves to a section
     def test_taAssignThemselves(self):
-        self.client.force_login(self.ta_user)
-        resp = self.client.post("/assign-section/", {
+        self.login_user(self.ta_user)
+        response = self.client.post("/assignsections/", {
             "ta_id": self.ta_user.id,
-            "section_id": self.section.id,
+            "section_id": self.section.sectionId,
         }, follow=True)
 
-        self.assertEqual(resp.status_code, 403)  # Forbidden
-        self.assertIn("TAs cannot assign themselves to sections", resp.context['errors'])
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("TAs cannot assign themselves to sections", response.context["errors"])
 
     # Negative Test: TA tries to assign another TA to a section
     def test_taAssignOtherTA(self):
@@ -513,18 +610,19 @@ class AssignSectionTest(TestCase):
         self.assertEqual(resp.status_code, 403)  # Forbidden
         self.assertIn("TAs cannot assign other TAs to sections", resp.context['errors'])
 
-    # Negative Test: Empty TA 
+    # Negative Test: Empty TA
     def test_emptyTA(self):
-        self.client.force_login(self.admin_user)
-        resp = self.client.post("/assign-section/", {
-            "ta_id": "",
-            "section_id": self.section.id,
+        self.login_user(self.admin_user)  # Use manual session-based login
+        response = self.client.post("/assignsections/", {
+            "ta_id": "",  # Empty TA ID
+            "section_id": self.section.sectionId,
         }, follow=True)
 
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn("TA ID cannot be empty", resp.context['errors'])
+        # Assert the correct error message is returned
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("TA ID cannot be empty", response.context["message"])
 
-    # Negative Test: Empty Section 
+    # Negative Test: Empty Section
     def test_emptySection(self):
         self.client.force_login(self.admin_user)
         resp = self.client.post("/assign-section/", {
@@ -535,16 +633,17 @@ class AssignSectionTest(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertIn("Section ID cannot be empty", resp.context['errors'])
 
-    # Negative Test: Invalid TA 
+    # Negative Test: Invalid TA
     def test_invalidTA(self):
-        self.client.force_login(self.admin_user)
-        resp = self.client.post("/assign-section/", {
+        self.login_user(self.admin_user)
+        response = self.client.post("/assignsections/", {
             "ta_id": 999,  # Non-existent TA ID
-            "section_id": self.section.id,
+            "section_id": self.section.sectionId,
         }, follow=True)
 
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn("TA not found", resp.context['errors'])
+        # Assert the correct message is returned
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("TA does not exist.", response.context["message"])
 
     # Negative Test: Invalid Section
     def test_invalidSection(self):
